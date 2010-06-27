@@ -13,7 +13,7 @@ Usage.
 
 Route definitions.
 ------------------
-Route definitions go into a dosini file (routes.ini). INI files follow the same spec as the php.ini file you're familiar with. The route entries for this router should look like:
+Route definitions go into a dosini file (routes.ini). INI files follow the same spec as the php.ini file you're familiar with. The route entries for this router should look like::
 
     [route name]
     pattern = "@/some/(pattern)/(\d+)@"
@@ -23,13 +23,13 @@ Handlers.
 ---------
 The handler in the route definitions uses ::, which looks like a static method but, because of some aspects of PHP that I've never investigated very deeply, it's completely ambiguous whether or not that method is a static or instance method.
 
-All classes in the handler will be constructed, but no arguments are passed to the constructor. All methods will be passed the URI that the router used to match. If any groups are defined in the regex they will be passed as additional arguments to the function. A route like this:
+All classes in the handler will be constructed, but no arguments are passed to the constructor. All methods will be passed the URI that the router used to match. If any groups are defined in the regex they will be passed as additional arguments to the function. A route like this::
 
     [articles]
     pattern = "@/articles/meaningless-seo-friendly-title/(\d+)@"
     handler = "ArticlePage::display"
 
-...can use a function definition like this:
+...can use a function definition like this::
 
     class ArticlePage{
         function display($uri, $article_id){
@@ -40,7 +40,7 @@ All classes in the handler will be constructed, but no arguments are passed to t
 Invoking.
 =========
 
-This class goes hand in hand with a front controller. In my Apache virtual host definition, I have this:
+This class goes hand in hand with a front controller. In my Apache virtual host definition, I have this::
 
     RewriteEngine On
     RewriteBase /
@@ -48,7 +48,7 @@ This class goes hand in hand with a front controller. In my Apache virtual host 
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule . /index.php [L]
 
-And in the docroot, I have an index.php that looks like this:
+And in the docroot, I have an index.php that looks like this::
 
     require_once('src/preg_router.php');
     require_once('test/test-page.php');
