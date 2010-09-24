@@ -7,7 +7,7 @@ I've had to create some DOM animations in the past where the jQuery animations f
 Example
 =======
 
-The test page is in the repository. You can also look at it here_.
+The test page is in the repository. You can also look at it here.
 
 Usage
 =====
@@ -67,5 +67,3 @@ Here's the API for those functions.::
      * All active animations are stopped.
      */
     animan.stop_all();
-
-.. _here: http://bag.staugler.net/animan
