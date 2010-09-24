@@ -7,12 +7,13 @@ I've had to create some DOM animations in the past where the jQuery animations f
 Example
 =======
 
-The test page is in the repository.
+The test page is in the repository. I've also posted it here_.
 
 Usage
 =====
 
-After including the script on your page, you'll have access to the following functions.::
+After including the script on your page, you'll have access to the following functions.
+::
 
     animan.create
     animan.stop
@@ -24,6 +25,7 @@ API
 animan.create(steps, interval, callback)
 ----------------------------------------
 ::
+
     steps
         The number of steps to take in the animation. Your 'callback'
         will be called this many times.
@@ -57,9 +59,12 @@ animan.create(steps, interval, callback)
 animan.stop(animation)
 ----------------------
 ::
+
     animation
         An object created with animan.create.
 
 animan.stop_all()
 -----------------
 All active animations are stopped.
+
+.. _here: http://bag.staugler.net/animan/
