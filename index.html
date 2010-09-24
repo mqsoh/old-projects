@@ -1,0 +1,99 @@
+<html>
+	<head>
+		<title>Animan test page.</title>
+		<script type="text/javascript" src="src/animan.js"></script>
+
+		<style type="text/css">
+			body{
+				background-color:#eeeeec;
+				text-align:center;
+				margin:20px;
+			}
+
+			.box{
+				width:400px;
+				height:400px;
+				margin:0 auto;
+				background-color:#2e3436;
+				position:relative;
+			}
+
+			.popper{
+				width:20px;
+				height:20px;
+				background-color:#729fcf;
+				position:absolute;
+				top:190px;
+				left:190px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box" class="box">
+			<div id="popper" class="popper"></div>
+		</div>
+		<script type="text/javascript">
+			var box = document.getElementById('box'),
+			popper = document.getElementById('popper'),
+
+			STEPS = 100,
+			SPEED = 10,
+
+			// Width calculations.
+			small_width = popper.offsetWidth,
+			big_width = box.offsetWidth;
+			diff_width = Math.ceil(big_width - small_width),
+
+			// Height calculations.
+			small_height = popper.offsetHeight,
+			big_height = box.offsetHeight,
+			diff_height = Math.ceil(big_height - small_height),
+			
+			// Top calculations.
+			small_top = popper.offsetTop,
+			big_top = 0,
+			diff_top = Math.ceil(big_top - small_top),
+			
+			// Left calculations.
+			small_left = popper.offsetLeft;
+			big_left = 0,
+			diff_left = Math.ceil(big_left - small_left);
+
+			function expand_animation(step, steps, pos, ani){
+				var
+				neww = small_width + Math.ceil(diff_width * pos),
+				newh = small_height + Math.ceil(diff_height * pos),
+				newt = small_top + Math.ceil(diff_top * pos),
+				newl = small_left + Math.ceil(diff_left * pos);
+
+				popper.style.width = neww + 'px';
+				popper.style.height = newh + 'px';
+				popper.style.top = newt + 'px';
+				popper.style.left = newl + 'px';
+
+				if (pos === 1) {
+					animan.create(STEPS, SPEED, contract_animation);
+				}
+			};
+
+			function contract_animation(step, steps, pos, ani){
+				var
+				neww = big_width - Math.ceil(diff_width * pos),
+				newh = big_height - Math.ceil(diff_height * pos),
+				newt = big_top - Math.ceil(diff_top * pos),
+				newl = big_left - Math.ceil(diff_left * pos);
+
+				popper.style.width = neww + 'px';
+				popper.style.height = newh + 'px';
+				popper.style.top = newt + 'px';
+				popper.style.left = newl + 'px';
+
+				if (pos === 1) {
+					animan.create(STEPS, SPEED, expand_animation);
+				}
+			};
+
+			animan.create(STEPS, SPEED, expand_animation);
+		</script>
+	</body>
+</html>
