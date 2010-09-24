@@ -7,66 +7,59 @@ I've had to create some DOM animations in the past where the jQuery animations f
 Example
 =======
 
-The test page is in the repository. You can also look at it here_.
+The test page is in the repository.
 
 Usage
 =====
 
-After including the script on your page, you'll have access to the following functions:
+After including the script on your page, you'll have access to the following functions:::
+    animan.create
+    animan.stop
+    animat.stop_all
 
- * animan.create
- * animan.stop
- * animat.stop_all
+API
+===
 
-Here's the API for those functions.::
-    /**
-     * Create a new animation.
-     * -----------------------
-     * steps
-     *     The number of steps to take in the animation. Your 'callback'
-     *     will be called this many times.
-     *
-     * interval
-     *     The speed in milliseconds between each step in the animation.
-     *
-     * callback
-     *     This is the function where you do your manipulation. This
-     *     function will be passed the following parameters:
-     *         step
-     *             The number of the current step, range of 0 - 'steps'
-     *             passed to this function.
-     *
-     *         steps
-     *             The same as steps above, for your convenience.
-     *
-     *         position
-     *             This is a number, 0 - 1 (step / steps), representing the
-     *             position in the current animation.
-     *
-     *         animation
-     *             This is an object with animation properties. It also
-     *             contains some properties for internal use. You can use
-     *             this to stop an animation in the middle of it's workings.
-     *             For example:
-     *                 if (something_you_care_about) {
-     *                     animan.stop(animation);
-     *                 }
-     */
-    animan.create(steps, interval, callback);
+animan.create(steps, interval, callback)
+----------------------------------------
+::
 
-    /**
-     * Stop an animation.
-     * ------------------
-     * animation
-     *     An object created with animan.create.
-     */
-    animan.stop(animation);
+    steps
+        The number of steps to take in the animation. Your 'callback'
+        will be called this many times.
 
-    /**
-     * Stop all animations.
-     * --------------------
-     * All active animations are stopped.
-     */
-    animan.stop_all();
+    interval
+        The speed in milliseconds between each step in the animation.
 
-.. _here: http://bag.staugler.net/animan
+    callback
+        This is the function where you do your manipulation. This
+        function will be passed the following parameters:
+            step
+                The number of the current step, range of 0 - 'steps'
+                passed to this function.
+
+            steps
+                The same as steps above, for your convenience.
+
+            position
+                This is a number, 0 - 1 (step / steps), representing the
+                position in the current animation.
+
+            animation
+                This is an object with animation properties. It also
+                contains some properties for internal use. You can use
+                this to stop an animation in the middle of it's workings.
+                For example:
+                    if (something_you_care_about) {
+                        animan.stop(animation);
+                    }
+
+animan.stop(animation)
+----------------------
+::
+    animation
+        An object created with animan.create.
+
+animan.stop_all()
+-----------------
+All active animations are stopped.
