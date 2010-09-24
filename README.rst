@@ -24,6 +24,7 @@ API
 animan.create(steps, interval, callback)
 ----------------------------------------
 Creates an animation.::
+
     steps
         The number of steps to take in the animation. Your 'callback'
         will be called this many times.
