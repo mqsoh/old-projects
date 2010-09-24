@@ -13,10 +13,9 @@ Usage
 =====
 
 After including the script on your page, you'll have access to the following functions:
-
- * animan.create
- * animan.stop
- * animat.stop_all
+    animan.create
+    animan.stop
+    animat.stop_all
 
 Here's the API for those functions.::
     /**
