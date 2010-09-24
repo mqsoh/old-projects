@@ -12,7 +12,7 @@ The test page is in the repository.
 Usage
 =====
 
-After including the script on your page, you'll have access to the following functions:::
+After including the script on your page, you'll have access to the following functions.::
     animan.create
     animan.stop
     animat.stop_all
@@ -23,7 +23,6 @@ API
 animan.create(steps, interval, callback)
 ----------------------------------------
 ::
-
     steps
         The number of steps to take in the animation. Your 'callback'
         will be called this many times.
