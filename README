@@ -1,0 +1,21 @@
+This repository will have any plugins I write for Vendetta Online. Right now it only has...
+
+====
+Plod
+====
+
+Plod can be used to plot courses between two sectors. It will also buy and
+unload cargo between two stations, if you provide a third argument. For
+trading it will do everything but the flying.
+
+The trade item is case sensitive.
+
+Usage.
+------
+/plod [start sector or 'current'] [end sector or 'current'] [optional trade item]
+
+Examples:
+---------
+/plod 'sol e15' 'geira i5' 'XiRite Alloy'
+/plod current 'geira o4' 'Basic Targeting Systems'
+/plod a12 j6

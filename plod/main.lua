@@ -7,6 +7,8 @@
 -- unload cargo between two stations, if you provide a third argument. For
 -- trading it will do everything but the flying.
 --
+-- The trade item is case sensitive.
+--
 -- Usage.
 -- ------
 -- /plod [start sector or 'current'] [end sector or 'current'] [optional trade item]
@@ -53,11 +55,13 @@ function plod.cmd_plod(data, args)
     -- No input.
     if not args then
         plod.pinfo("NAME")
-        plod.pinfo("        plod - For plodding between two sectors to move cargo.")
+        plod.pinfo("        plod - For plodding between two sectors and optionally moving cargo.")
         plod.pinfo("SYNOPSIS")
         plod.pinfo("        /plod [start sector] [end sector] [optional trade item]")
-        plod.pinfo("EXAMPLE")
-        plod.pinfo("        /plod  \"Jallik E-15\" \"Verasi I-5\" \"XiRite Alloy\"")
+        plod.pinfo("EXAMPLES")
+        plod.pinfo("        /plod 'sol e15' 'geira i5' 'XiRite Alloy'")
+        plod.pinfo("        /plod current 'geira o4' 'Basic Targeting Systems'")
+        plod.pinfo("        /plod a12 j6")
         return
     end
 
