@@ -106,11 +106,19 @@ end
 -- Loads the configuration from the system notes.
 function humaniform.load_config()
     local h = humaniform
-    local id = GetCharacterID()..'1337'
-    local data = unspickle(LoadSystemNotes(id))
 
-    h.gender = data.gender
-    h.active = data.active
+    -- We need to keep trying to load the config while GetCharacterID is
+    -- returning nil (why should it, at all?).
+    if not GetCharacterID() then
+        local config_timer = Timer()
+        config_timer:SetTimeout(500, h.load_config)
+    else
+        local id = GetCharacterID()..'1337'
+        local data = unspickle(LoadSystemNotes(id))
+
+        h.gender = data.gender
+        h.active = data.active
+    end
 end
 
 -- ======
