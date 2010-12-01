@@ -1,6 +1,6 @@
 This repository will have any plugins I write for Vendetta Online. It includes:
 
-Plod -- for moving between to sectors (automatic rerouting) and optionally trading.
+Plod -- for moving between two sectors (automatic rerouting) and optionally trading.
 
 Humaniform -- prints human-like activities to sector chat with /me, e.g. /me scratches his head.
 
