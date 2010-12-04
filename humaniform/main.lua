@@ -107,18 +107,18 @@ end
 function humaniform.load_config()
     local h = humaniform
 
-    -- We need to keep trying to load the config while GetCharacterID is
-    -- returning nil (why should it, at all?).
     if not GetCharacterID() then
-        local config_timer = Timer()
-        config_timer:SetTimeout(500, h.load_config)
-    else
-        local id = GetCharacterID()..'1337'
-        local data = unspickle(LoadSystemNotes(id))
-
-        h.gender = data.gender
-        h.active = data.active
+        humaniform.timer:SetTimeout(5000, humaniform.load_config)
+        return false
     end
+
+    local id = GetCharacterID()..'1337'
+    local data = unspickle(LoadSystemNotes(id))
+
+    h.gender = data.gender
+    h.active = data.active
+
+    return true
 end
 
 -- ======
@@ -127,7 +127,13 @@ end
 -- Loads the config and starts acting human.
 function humaniform.start()
     local h = humaniform
-    h.load_config()
+
+    -- We need to keep trying to load the config while GetCharacterID is
+    -- returning nil (why should it, at all?).
+    if not h.load_config() then
+        h.timer:SetTimeout(500, humaniform.start)
+        return
+    end
 
     if h.active then
         h.schedule()
@@ -155,6 +161,7 @@ function humaniform.cmd(data, args)
             if h.timer:IsActive() then
                 h.timer:Kill()
                 h.active = false
+                h.save_config()
                 print('Humaniform has been turned off.')
             else
                 print('Humaniform is already off.')
