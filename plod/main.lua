@@ -80,7 +80,7 @@ function plod.cmd_plod(data, args)
     -- Plot course.
     local from = nil
     local current_system_name = string.gsub(SystemNames[GetCurrentSystemid()], '(%S+)%s*(%S*)', '%1')
-    if (args[1] == 'current') then
+    if (args[1] == 'current' or args[1] == '.') then
         from = GetCurrentSectorid()
     elseif string.find(args[1], '^%a%--%d+') then
         from = SectorIDFromLocationStr(current_system_name..' '..args[1])
