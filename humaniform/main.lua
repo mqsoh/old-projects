@@ -24,21 +24,22 @@ humaniform = humaniform or {}
 humaniform.NEUTER = 1
 humaniform.FEMALE = 2
 humaniform.MALE = 3
+humaniform.gender_names = { 'neuter', 'female', 'male' }
 humaniform.actions = nil
 humaniform.timer = Timer()
 
 humaniform.default_actions = {
     'farts.'
     ,'burps.'
-    ,'scratches {posessive} head.'
-    ,'picks {posessive} nose.'
+    ,'scratches {its} head.'
+    ,'picks {its} nose.'
     ,'sighs.'
     ,'claps like a maniac!'
-    ,'scratches {posessive} butt.'
-    ,'strokes {posessive} chin in thought.'
-    ,'rubs {posessive} eyes.'
+    ,'scratches {its} butt.'
+    ,'strokes {its} chin in thought.'
+    ,'rubs {its} eyes.'
     ,'twitches.'
-    ,'takes a sip of {posessive} drink.'
+    ,'takes a sip of {its} drink.'
 }
 
 humaniform.time_min_s = 5 * 60
@@ -46,6 +47,14 @@ humaniform.time_max_s = 20 * 60
 humaniform.gender = humaniform.NEUTER
 humaniform.active = true
 humaniform.pending_actions = 0
+humaniform.ui = {}
+humaniform.ui.current_dialog = nil
+humaniform.ui.closer = iup.stationbutton{
+    title = 'closer'
+    , action = function ()
+        HideDialog(humaniform.ui.current_dialog)
+    end
+}
 
 -- =========
 -- Schedule.
@@ -71,7 +80,7 @@ function humaniform.tick()
     local action = h.actions[rand]
 
     if action then
-        local prepped = string.gsub(action, '{posessive}', h.posessive())
+        local prepped = string.gsub(action, '{its}', h.possessive())
 
         SendChat('/me '..prepped, 'SECTOR')
     end
@@ -82,8 +91,8 @@ end
 -- ===========
 -- Possessive.
 -- ===========
--- Returns a posessive pronoun for the configured gender.
-function humaniform.posessive()
+-- Returns a possessive pronoun for the configured gender.
+function humaniform.possessive()
     local h = humaniform
     if h.gender == h.MALE then
         return 'his'
@@ -138,7 +147,15 @@ function humaniform.load_config()
     end
 
     h.active = data.active or true
-    h.actions = data.actions or humaniform.default_actions
+
+    if not data.actions then
+        h.actions = {}
+        for k, v in pairs(h.default_actions) do
+            h.actions[k] = v
+        end
+    else
+        h.actions = data.actions
+    end
 
     return true
 end
@@ -165,156 +182,267 @@ end
 -- ===========
 -- GUI config.
 -- ===========
-function humaniform.gui_config()
+-- Instantiates a factory and all the GUI behavior.
+function humaniform.ui.config()
     local h = humaniform
 
-    -- We'll declare these variables so that they can be used in callbacks.
-    local d = nil
-    local active = nil
-    local genders = nil
-    local actions = nil
-    local add = nil
+    local dialog, root_layout = unpack(h.ui.mkdialog('Humaniform -- act like a human!'))
 
-    humaniform.pending_actions = 0
-
-    -- Active toggle.
-    active = iup.hbox{
-        {};margin = '10x10', gap = '5'
-    }
-    iup.Append(active, iup.stationtoggle{
-        margin = '10x10',
-        value = h.active and 'on' or 'off',
-        action = function (state)
-            -- Enable / disable.
-            if state.value == 'ON' then
-                humaniform.active = true
-                if not humaniform.timer:IsActive() then
-                    humaniform.schedule()
-                end
-            else
-                humaniform.active = false
-                if humaniform.timer:IsActive() then
-                    humaniform.timer:Kill()
-                end
-            end
-            humaniform.save_config()
+    local toggle = h.ui.mktoggle('on / off', function (on_or_off)
+        if on_or_off == 'on' then
+            h.active = true
+        else
+            h.active = false
         end
-    })
-    iup.Append(active, iup.label{
-        title = 'Active'
-    })
+        h.save_config()
+    end)
 
-    -- Gender selection.
-    genders = iup.hbox{
-        iup.label{ title = 'Select a gender.' },
-        iup.list{
-            'Neuter',
-            'Female',
-            'Male',
-            action = function (text, item, state)
-                -- Gender bender.
-                -- 'state' is the position in the list which, thanks to ordering
-                -- the same as the defined constants, we can just pass off to
-                -- the gender config.
-                humaniform.gender = state
-                humaniform.save_config()
+    local gender = h.ui.mkgenderbender(h.gender, function (new_gender)
+        h.gender = new_gender
+        h.save_config()
+    end)
+
+    local action_box = iup.vbox{{}}
+    local regenerate_actions = nil
+    regenerate_actions = function ()
+        local actions = h.ui.mkactions(
+            h.actions
+            , function (index, new_value)
+                -- Edit.
+                h.actions[index] = new_value
+                h.save_config()
             end
-            ;DROPDOWN = 'yes', VALUE = h.gender
+            , function (index)
+                -- Delete.
+                table.remove(h.actions, index)
+                h.save_config()
+                regenerate_actions()
+            end
+        )
+        local current = iup.GetNextChild(action_box)
+        if current then
+            current:destroy()
+        end
+        iup.Append(action_box, actions)
+        iup.Refresh(action_box)
+    end
+    regenerate_actions()
+
+    local buttons = h.ui.mkbuttons(
+        'Add Action'
+        , function ()
+            h.actions[#h.actions + 1] = ''
+            h.save_config()
+            regenerate_actions()
+        end
+        , 'Reset Defaults'
+        , function ()
+            h.actions = {}
+            for k, v in pairs(h.default_actions) do
+                h.actions[k] = v
+            end
+            h.save_config()
+            regenerate_actions()
+        end
+    )
+
+    iup.Append(root_layout, toggle)
+    iup.Append(root_layout, gender)
+    iup.Append(root_layout, action_box)
+    iup.Append(root_layout, buttons)
+
+    h.ui.current_dialog = dialog
+    ShowDialog(dialog)
+end
+
+-- ============
+-- UI mkdialog.
+-- ============
+-- title
+--     The title of the dialog window.
+--
+-- return
+--     {dialog, root_layout} -- You need the dialog to show shit and the root
+--     layout to add shit.
+function humaniform.ui.mkdialog(title)
+    local h = humaniform
+    local root_layout = iup.vbox{}
+    local dialog = iup.dialog{
+        iup.vbox{
+            iup.pdarootframe{
+                iup.pdarootframebg{
+                    root_layout
+                }
+            }
+            , margin = '5x5'
         }
-        ;margin = '10x10', gap = '10'
+        , title = title
+        , defaultesc = h.ui.closer
+    }
+    return {dialog, root_layout}
+end
+
+-- ============
+-- UI mktoggle.
+-- ============
+-- label
+--     The label for the toggle.
+--
+-- callback
+--     This will be called with 'on' or 'off'.
+--
+-- return
+--     A layout with the toggle inside.
+function humaniform.ui.mktoggle(label, callback)
+    local h = humaniform
+    local toggle = nil
+    toggle = iup.stationtoggle{
+        title = h.active and 'On    ' or 'Off    '
+        , margin = '10x5'
+        , value = h.active and 'on' or 'off'
+        , action = function (state)
+            if state.value == 'ON' then
+                toggle.title = 'On'
+                callback('on')
+            else
+                toggle.title = 'Off'
+                callback('off')
+            end
+        end
     }
 
-    -- Action inputs.
-    actions = iup.vbox{
-        iup.label{
-            title = 'Your avatar...'
-        }
-        ;margin = '10x10', gap = '1'
+    local layout = iup.hbox{
+        toggle
+        , margin = '10x5'
     }
-    for index, act in pairs(h.actions) do
-        local closure = function ()
-            local box = nil
-            local index = index
-            box = iup.hbox{
+
+    return layout
+end
+
+-- ==================
+-- UI mkgenderbender.
+-- ==================
+-- current_gender
+--     A number representing a gender in the list.
+--
+-- callback
+--     A callback to be executed when the list changes which will be passed the
+--     index of the newly selected item. The state is the index in the list
+--     which can be used as the gender config directly because they're the same
+--     order as the constants defined above.
+--
+-- return
+--     A layout that contains the combo box.
+function humaniform.ui.mkgenderbender(current_gender, callback)
+    local h = humaniform
+    local list = iup.pdarootlist{
+        'Neuter'
+        , 'Female'
+        , 'Male'
+        , value = current_gender
+        , action = function (text, item, state)
+            callback(state)
+        end
+        , DROPDOWN = 'yes'
+    }
+    local layout = iup.hbox{
+        iup.label{ title = 'Gender:' }
+        , list
+        , margin = '10x5'
+        , gap = '10'
+    }
+    return layout
+end
+
+-- =============
+-- UI mkactions.
+-- =============
+-- action_list
+--     A table of items with action text.
+--
+-- edit_callback
+--     When a user edits the fields, this will be executed and passed the
+--     action's index in the list and the new value.
+--
+-- delete_callback
+--     When a field is deleted, this callback will be executed, being passed
+--     the index of the deleted item.
+--
+-- return
+--     A layout with the action fields.
+function humaniform.ui.mkactions(action_list, edit_callback, delete_callback)
+    local h = humaniform
+    local layout = iup.vbox{
+        iup.hbox{
+            iup.label{ title = 'Your avatar...' }
+        }
+        , margin = '10x5'
+    }
+
+    for k, v in pairs(action_list) do
+        local action_builder = function ()
+            local index = k
+            local layout = nil
+
+            layout = iup.hbox{
                 iup.text{
-                    value = act,
-                    action = function (ud, char)
-                        -- Edit action.
-                        humaniform.actions[index] = ud.value
-                        humaniform.save_config()
+                    value = v
+                    , action = function (ud, char)
+                        edit_callback(index, ud.value)
                     end
-                    ;size = '500x'
-                },
-                iup.button{
-                    title = 'X',
-                    action = function ()
-                        -- Remove action.
-                        print(index)
-                        table.remove(humaniform.actions, index)
-                        humaniform.save_config()
-                        box:detach()
-                        iup.Refresh(actions)
+                    , size = '500x'
+                }
+                , iup.stationbutton{
+                    title = 'X'
+                    , action = function ()
+                        delete_callback(index)
                     end
                 }
             }
-            iup.Append(
-                actions,
-                box
-            )
+
+            return layout
         end
-        closure()
+        iup.Append(layout, action_builder())
     end
 
-    -- Add button.
-    add = iup.hbox{
-        iup.button{
-            title = 'Add Action',
-            action = function ()
-                humaniform.pending_actions = humaniform.pending_actions + 1
-                local index = #humaniform.actions + 1 + humaniform.pending_actions
-                iup.Append(
-                    actions,
-                    iup.text{
-                        value = '',
-                        action = function (ud, char)
-                            -- Edit action.
-                            humaniform.actions[index] = ud.value
-                            humaniform.save_config()
-                        end
-                        ;size = '500x'
-                    }
-                )
-                d:show()
-            end
-        },
-        iup.fill{},
-        iup.button{
-            title = 'Reset Default Actions',
-            action = function ()
-                humaniform.actions = humaniform.default_actions
-                humaniform.save_config()
-                humaniform.load_config()
+    return layout
+end
 
-                d:hide()
-                local timer = Timer()
-                timer:SetTimeout(1, humaniform.gui_config)
+-- =============
+-- UI mkbuttons.
+-- =============
+-- Makes the miscellaneous buttons on the bottom.
+--
+-- add_callback
+--     Executed when you should add a field to the list, first creating
+--     an entry in the table of actions and then regenerating the list.
+--
+-- reset_callback
+--     Executed when the action list should be regenerated with the
+--     default list.
+--
+-- return
+--     A layout with the buttons.
+function humaniform.ui.mkbuttons(add_label, add_callback, reset_label, reset_callback)
+    local h = humaniform
+    local layout = iup.hbox{
+        iup.stationbutton{
+            title = add_label
+            , action = function ()
+                add_callback()
             end
         }
-        ;margin = '10x10'
-    }
-
-    -- Build the dialog.
-    d = iup.dialog{
-        iup.vbox{
-            active,
-            genders,
-            actions,
-            add
+        , iup.fill{}
+        , iup.stationbutton{
+            title = reset_label
+            , action = function ()
+                reset_callback()
+            end
         }
-        ;title = 'Humaniform -- act like a human!'
+        , margin = '10x5'
     }
 
-    d:show()
+    return layout
 end
 
 -- =============
@@ -327,7 +455,7 @@ function humaniform.cmd(data, args)
 
     if not args then
 
-        h.gui_config()
+        h.ui.config()
 
     elseif args and #args > 0 then
         local command = args[1]
@@ -369,5 +497,4 @@ function humaniform.cmd(data, args)
 end
 
 RegisterUserCommand('humaniform', humaniform.cmd)
-RegisterUserCommand('hf', humaniform.cmd)
 RegisterEvent(humaniform.start, 'PLAYER_ENTERED_GAME')
