@@ -31,10 +31,16 @@
 -- /plod a12 j6
 plod = plod or {}
 
+plod.FORWARD = 1
+plod.BACKWARD = 0
+
 plod.on = false
 plod.to = nil
 plod.from = nil
+plod.direction = plod.FORWARD
 plod.trade_item = nil
+plod.auto_trade = false
+plod.auto_trade_item = nil
 
 plod.timing = {}
 plod.timing.timer = Timer()
@@ -63,7 +69,12 @@ function plod.usage()
         plod.pinfo("NAME")
         plod.pinfo("        plod - For plodding between two sectors and optionally moving cargo.")
         plod.pinfo("SYNOPSIS")
+        plod.pinfo("        /plod off")
+        plod.pinfo("            Turn plod off.")
+        plod.pinfo("        /plod mission")
+        plod.pinfo("            Start listening for mission updates.")
         plod.pinfo("        /plod [start sector] [end sector] [optional trade item]")
+        plod.pinfo("            Manually defined behavior.")
         plod.pinfo("EXAMPLES")
         plod.pinfo("        /plod sol e15 geira i5 XiRite Alloy")
         plod.pinfo("        /plod . geira o4 Basic Targeting Systems")
@@ -79,7 +90,10 @@ function plod.reset()
     plod.to = nil
     plod.from = nil
     plod.trade_item = nil
+    plod.auto_trade = false
+    plod.auto_trade_item = nil
     plod.mission_watch = false
+    plod.direction = 1
 
     -- Unregister events to be sure that multiple calls don't increase the number of
     -- listeners.
@@ -162,6 +176,7 @@ function plod.cmd_plod(data, args)
     if args[1] and args[1] == 'mission' then
         plod.on = true
         plod.mission_watch = true
+        --plod.auto_trade = true
         plod.pinfo('Trying last mission update.')
         plod.mission_update(plod.mission_last_message)
         return
@@ -182,7 +197,15 @@ function plod.cmd_plod(data, args)
 
     -- If there are any arguments left, it's the trade item.
     if # args > 0 then
-        trade_item = table.concat(args, ' ')
+        if args[# args] == 'auto' then
+            plod.auto_trade = true
+            table.remove(args, # args)
+        end
+
+        -- Check again because we might have just lopped off an 'auto'.
+        if # args > 0 then
+            trade_item = table.concat(args, ' ')
+        end
     end
 
     plod.start(from, to, trade_item)
@@ -208,12 +231,21 @@ function plod.start(from, to, item)
 
     if item then
         plod.pinfo("We'll also move "..item.." for you.")
+    end
 
+    if item or plod.auto_trade then
         RegisterEvent(plod.plodding_trade, "ENTERED_STATION")
     end
+
     RegisterEvent(plod.plodding_sector_changed, "SECTOR_CHANGED")
 
     NavRoute.SetFinalDestination(to)
+    plod.direction = plod.FORWARD
+
+    -- We'll fake an entered station event if the player is in a station.
+    if PlayerInStation() then
+        plod.plodding_trade('ENTERED_STATION')
+    end
 end
 
 -- ====================
@@ -225,8 +257,10 @@ function plod.plodding_sector_changed(event, sectorid)
         local new_destination = nil
         if sectorid == plod.to then
             new_destination = plod.from
+            plod.direction = plod.BACKWARD
         else
             new_destination = plod.to
+            plod.direction = plod.FORWARD
         end
 
         plod.pinfo("You've arrived. We're plodding a new course to "..LocationStr(new_destination)..".")
@@ -244,57 +278,122 @@ end
 -- If a trade item was defined, then this will be registered with
 -- ENTERED_STATION event.
 function plod.plodding_trade(event)
-    if not plod.trade_item then
+    plod.perr('trade event')
+
+    if not plod.trade_item and not plod.auto_trade then
         return
     end
 
-    -- Convert the trade item into an item ID.
-    local item = plod.trade_item
-    local itemid = 0
-    for id = 1, GetNumStationMerch() do
-        local info = GetStationMerchInfo(id)
-        if info.name == item then
-            itemid = info.itemid
+    local shipid = GetActiveShipID()
+    local inventory = GetShipInventory(shipid)
+    local continued = false
+
+    local maybe_sell = function (list, continue)
+        for _, id in pairs(list) do
+            local name = GetInventoryItemName(id)
+            local num = GetInventoryItemQuantity(id)
+
+            log_print('    '..name)
+            if name == plod.trade_item then
+                log_print('        trade item')
+                -- Unload the manually defined item because they might want to
+                -- stock up.
+                CheckStorageAndUnloadCargo({{itemid = id, quantity = num}}, function (status)
+                    if not status then
+                        plod.ppass('We unloaded '..num..'cu of '..name..'.')
+                    else
+                        plod.perr('We failed to unload '..num..'cu of '..name..'.')
+                    end
+                    plod.timing.timer:SetTimeout(2000, continue)
+                end)
+                return true
+            elseif name == plod.auto_trade_item then
+                log_print('        auto item')
+                -- Sell anything else (which should be an auto-determined item).
+                --SellInventoryItem(id, num)
+                UnloadSellCargo({{itemid=id, quantity=num}}, function (status)
+                    if not status then
+                        plod.ppass('We sold '..num..'cu of '..name..'.')
+                    else
+                        plod.perr('We failed to sell '..num..'cu of '..name..'.')
+                    end
+                    plod.timing.timer:SetTimeout(2000, continue)
+                end)
+                return true
+            end
         end
+        return false
     end
 
-    if itemid == 0 then
-        -- Unload item.
-        -- ------------
-        -- If station doesn't have this item, we'll try unloading it if it's in the
-        -- cargo hold.
-        local shipid = GetActiveShipID()
-        local inventory = GetShipInventory(shipid)
+    -- This function will be executed when the asynchronous selling function
+    -- completes.
+    local continue_function = function ()
+        if continued then
+            return
+        end
 
-        if inventory['cargo'] then
-            for _, id in pairs(inventory['cargo']) do
-                local name = GetInventoryItemName(id)
-                local num = GetInventoryItemQuantity(id)
+        continued = true
 
-                if name == item then
-                    CheckStorageAndUnloadCargo({{itemid = id, quantity = num}})
-                    plod.ppass("We unloaded your "..name..".")
+        if plod.trade_item and not plod.auto_trade then
+            -- Only trading the defined item.
+            local trade_status = plod.buy_item(plod.trade_item)
+            if trade_status == 2 then
+                plod.pinfo('This station doesn\'t sell '..plod.trade_item..'. This is okay if the other station does.')
+            elseif trade_status ~= 0 then
+                plod.perr('We failed to purchase '..plod.trade_item..'.')
+            end
+        elseif not plod.trade_item and plod.auto_trade then
+            -- Only auto-trading.
+            local auto_item = plod.find_auto_trade_item()
+            if not auto_item then
+                plod.pinfo('We were unable to find a suitable item to trade for your next trip.')
+                return
+            end
+
+            local status = plod.buy_item(auto_item)
+            if status ~= 0 then
+                plod.perr('We failed to buy '..auto_item..' for you.')
+            else
+                plod.ppass('We bought '..auto_item..' for you.')
+                plod.auto_trade_item = auto_item
+            end
+        else
+            -- Mixed trading.
+            local trade_status = plod.buy_item(plod.trade_item)
+            if trade_status == 2 then
+                local auto_item = plod.find_auto_trade_item()
+                if not auto_item then
+                    plod.pinfo('This station doesn\'t sell '..plod.trade_item..' and we were unable to determine a suitable item to auto trade.')
                     return
                 end
+
+                local auto_status = plod.buy_item(auto_item)
+                if auto_status == 0 then
+                    plod.auto_trade_item = auto_item
+                    plod.ppass('We bought '..auto_item..' for you.')
+                else
+                    plod.perr('We failed to purchase a suitable item for trading.')
+                end
+            elseif trade_status ~= 0 then
+                plod.perr('We failed to purchase '..plod.trade_item..'.')
             end
         end
-
-        plod.perr("We weren't able to unload "..item..". This station doesn't sell it either.")
-    else
-        -- Buy item.
-        -- ---------
-        -- If the station has the trade item, we should buy it.
-        local max_cargo = GetActiveShipMaxCargo()
-        PurchaseMerchandiseItem(itemid, max_cargo, function (status)
-            if not status then
-                plod.ppass("We purchased your cargo.")
-            else
-                plod.perr("We failed to purchase your cargo.")
-            end
-        end)
     end
 
-    if itemid then
+    log_print('Poot! trade item: '..tostring(plod.trade_item)..', auto: '..tostring(plod.auto_trade_item))
+    log_print('Cargo selling:')
+    local selling = false
+    if inventory['cargo'] then
+        selling = maybe_sell(inventory['cargo'], continue_function)
+    end
+
+    log_print('Addon selling:')
+    if not selling and inventory['addons'] then
+        selling = maybe_sell(inventory['addons'], continue_function)
+    end
+
+    if not selling then
+        continue_function()
     end
 end
 
@@ -372,6 +471,203 @@ function plod.mission_update(message)
             plod.start(from, to, item)
         end
     end
+end
+
+-- ===========================
+-- Plod: find auto trade item.
+-- ===========================
+-- This will try and find a suitable trade item for the next trip.
+--
+-- return
+--     The name of a commodity or nil.
+function plod.find_auto_trade_item()
+    local item = nil
+
+    local stations, goods = unpack(plod.get_tadata())
+
+    local from_sector = GetCurrentSectorid()
+    local to_sector = nil
+    if from_sector == plod.from then
+        to_sector = plod.to
+    else
+        to_sector = plod.from
+    end
+
+    local from_station = nil
+    local to_station = nil
+
+    for stationid, info in pairs(stations) do
+        if info.sectorid == from_sector then
+            --from_station = stations[stationid]
+            from_station = stationid
+        elseif info.sectorid == to_sector then
+            --to_station = stations[stationid]
+            to_station = stationid
+        end
+    end
+
+    if not from_station or not to_station then
+        plod.pinfo('We don\'t have have Trade Assist data for both stations.')
+    else
+        -- We have TA data for both stations.
+        local suitable_items = {}
+
+        for good_name, good_info in pairs(goods) do
+            if good_info and type(good_info) == 'table' and plod.valid_good(good_info.type) then
+
+                local volume = good_info.vol
+                local good_for_to, good_for_from
+
+                for station_id, station_info in pairs(good_info) do
+                    if station_id == from_station then
+                        good_for_from = station_info
+                    elseif station_id == to_station then
+                        good_for_to = station_info
+                    end
+                end
+
+                if good_for_to and good_for_from then
+                    local buy_data = nil
+                    local sell_data = nil
+
+                    if plod.FORWARD then
+                        buy_data = good_for_to
+                        sell_data = good_for_from
+                    else
+                        buy_data = good_for_from
+                        sell_data = good_for_to
+                    end
+
+                    if buy_data.buy and sell_data.sell and (buy_data.buy - sell_data.sell > 0)then
+                        -- Adding suitable item.
+                        table.insert(suitable_items, {
+                            name = good_name,
+                            profit = buy_data.buy - sell_data.sell,
+                            volume = volume
+                        })
+                    end
+                end
+
+            end
+        end
+
+        if # suitable_items > 0 then
+            -- Find the best suitable item.
+            local highest_profit_per_cu = 0
+            for _, suitable_item in ipairs(suitable_items) do
+                local profit_per_cu = suitable_item.profit / suitable_item.volume
+                if profit_per_cu > highest_profit_per_cu then
+                    item = suitable_item.name
+                end
+            end
+        end
+    end
+
+    return item
+end
+
+-- ============================
+-- Plod: Get Trade Assist data.
+-- ============================
+-- return
+--     A list of {table stations, table goods}
+function plod.get_tadata()
+    -- We'll load this every time because TA data might change as we're
+    -- plodding.
+    local taid = GetCharacterID()..'201'
+    local tadata = unspickle(LoadSystemNotes(taid)) or {}
+    local goods = tadata.goods or {}
+    local stations = tadata.stations or {}
+
+    return {stations, goods}
+end
+
+-- ===============
+-- Plod: buy item.
+-- ===============
+-- name
+--     The case-insensitive name of a commodity.
+--
+-- return
+--     0 -- success
+--     1 -- No room in the hold.
+--     2 -- Not sold here.
+--     3 -- API failure.
+--     4 -- Other.
+function plod.buy_item(name)
+    name = string.lower(name)
+    local max_space = GetActiveShipMaxCargo()
+    local used_space = GetActiveShipCargoCount()
+    local available_space = max_space - used_space
+
+    if available_space < 1 then
+        return 1
+    end
+
+    -- Convert the name into an item ID.
+    local itemid = nil
+    local item_count = 0
+    -- If this isn't a commodity, it will have to be manually loaded into the
+    -- hold.
+    local load_on_purchase = false
+    for id = 1, GetNumStationMerch() do
+        local info = GetStationMerchInfo(id)
+        local volume = info.volume
+        if string.lower(info.name) == name then
+            itemid = info.itemid
+            item_count = math.floor(available_space / volume)
+            load_on_purchase = not (info.type == 'commodities')
+
+            log_print(info.name..' info:')
+            for k, v in pairs(info) do
+                log_print('    '..tostring(k)..': '..tostring(v))
+            end
+        end
+    end
+
+    if itemid == nil then
+        return 2
+    end
+
+    PurchaseMerchandiseItem(itemid, item_count, function (status)
+        if not status then
+            plod.ppass('We purchased '..tostring(available_space)..'cu ('..tostring(item_count)..' units)'..' of '..name..'.')
+
+            if load_on_purchase then
+                local cargo = GetStationCargoList()
+                if cargo and type(cargo) == 'table' then
+                    for _, cargo_id in ipairs(cargo) do
+                        local n = string.lower(GetInventoryItemName(cargo_id))
+                        if n == name then
+                            LoadCargo({{itemid=cargo_id, quantity=item_count}})
+                        end
+                    end
+                end
+            end
+        else
+            plod.perr('We failed to purchase '..name..'.')
+        end
+    end)
+
+    return 0
+end
+
+function plod.valid_good(good_type)
+    local valid_types = {
+        'lightweapon',
+        'turretweapon',
+        'commodities',
+        'battery',
+        'heavyweapon'
+    }
+
+    for _, t in ipairs(valid_types) do
+        if t == good_type then
+            return true
+        end
+    end
+
+    return false
 end
 
 RegisterUserCommand('plod', plod.cmd_plod)
