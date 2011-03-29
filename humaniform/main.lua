@@ -5,21 +5,16 @@
 --
 -- Humaniform makes your charcter act like a human. When active, it will send
 -- /me messages to sector chat indicating that you're engaged in human-like
--- activities.
+-- activities (every 5 to 20 minutes).
+--
+-- There is a GUI config for you to add or remove custom actions. The token
+-- {its} inside the action will use a possessive pronoun based on the gender
+-- you've configured.
 --
 -- Usage.
 -- ------
--- /humaniform -- opens a config dialog.
--- /humaniform [gender, 'on' or 'off']
---
--- Examples.
--- ---------
 -- /humaniform
--- /humaniform on
--- /humaniform off
--- /humaniform male
--- /humaniform female
--- /humaniform neuter
+
 humaniform = humaniform or {}
 humaniform.NEUTER = 1
 humaniform.FEMALE = 2
@@ -146,7 +141,7 @@ function humaniform.load_config()
         h.gender = data.gender
     end
 
-    h.active = data.active or true
+    h.active = data.active
 
     if not data.actions then
         h.actions = {}

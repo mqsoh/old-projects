@@ -1,0 +1,16 @@
+===========
+Humaniform.
+===========
+Author: INKling
+
+Humaniform makes your charcter act like a human. When active, it will send
+/me messages to sector chat indicating that you're engaged in human-like
+activities (every 5 to 20 minutes).
+
+There is a GUI config for you to add or remove custom actions. The token
+{its} inside the action will use a possessive pronoun based on the gender
+you've configured.
+
+Usage.
+------
+/humaniform
