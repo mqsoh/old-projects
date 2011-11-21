@@ -55,6 +55,8 @@
 class preg_router{
     private $routes = NULL;
     private $pattern_map = array();
+    private $prehandler_queue = array();
+    private $posthandler_queue = array();
 
     /**
      * Constructs the router.
@@ -98,6 +100,28 @@ class preg_router{
     }
 
     /**
+     * Add a function to be executed before all handlers. It's a queue.
+     *
+     * @param mixed $fun
+     *     If $fun is a string, call_user_function will be used. Otherwise,
+     *     I'll assume that it's an anonymous function.
+     */
+    public function before_all_handlers($fun){
+        $this->prehandler_queue[] = $fun;
+    }
+
+    /**
+     * Add a function to be executed after all handlers. It's a queue.
+     *
+     * @param mixed $fun
+     *     If $fun is a string, call_user_function will be used. Otherwise,
+     *     I'll assume that it's an anonymous function.
+     */
+    public function after_all_handlers($fun){
+        $this->posthandler_queue[] = $fun;
+    }
+
+    /**
      * You'll probably want to pass in $_SERVER['REQUEST_URI'] for the URI,
      * but it can be anything if, for instance, you wanted to use some sort of
      * internal addressing.
@@ -117,6 +141,8 @@ class preg_router{
                 // open-ended.
                 $groups[0] = $uri;
 
+                $this->prehandlers($groups);
+
                 $route = $this->routes[$route_name];
                 $arr = explode('::', $route['handler']);
                 $pieces = count($arr);
@@ -130,13 +156,19 @@ class preg_router{
                     if (!function_exists($function_name)){
                         throw new preg_router_error("No function '$function_name' exists.");
                     }
-                    return call_user_func_array($function_name, $groups);
+                    $resp = call_user_func_array($function_name, $groups);
+
+                    $this->posthandlers($groups);
+                    return $resp;
                 }
                 else if ($pieces == 2){
                     // Handler is a method.
                     $class_name = $arr[0];
                     $method_name = $arr[1];
-                    return $this->handle_method($class_name, $method_name, $groups);
+                    $resp = $this->handle_method($class_name, $method_name, $groups);
+
+                    $this->posthandlers($groups);
+                    return $resp;
                 }
                 else{
                     throw new preg_router_error("Malformed handler for route '$route_name'.");
@@ -157,7 +189,7 @@ class preg_router{
      *     The result of executing 'method_name' on an instance of
      *     'class_name' with the 'args' as arguments.
      */
-    public function handle_method($class_name, $method_name, $args){
+    private function handle_method($class_name, $method_name, $args){
         // Find class.
         if (!class_exists($class_name)){
             throw new preg_router_error("Handler '$class_name' doesn't exist.");
@@ -175,6 +207,24 @@ class preg_router{
 
         // Invoke with the groups as arguments.
         return $method->invokeArgs($inst, $args);
+    }
+
+    /**
+     * Executes any functions added to the 'before' queue.
+     */
+    private function prehandlers($args){
+        foreach ($this->prehandler_queue as $fun){
+            call_user_func($fun, $args);
+        }
+    }
+
+    /**
+     * Executes any functions added to the 'after' queue.
+     */
+    private function posthandlers($args){
+        foreach ($this->posthandler_queue as $fun){
+            call_user_func($fun, $args);
+        }
     }
 }
 class preg_router_error extends Exception{}

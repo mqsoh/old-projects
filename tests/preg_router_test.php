@@ -5,6 +5,12 @@ function preg_router_test_function_handler(){
     return func_get_args();
 }
 
+function global_call_count(){
+    static $num = 0;
+    $num++;
+    return $num;
+}
+
 class preg_router_test extends PHPUnit_Framework_TestCase{
     public function instance_method_handler(){
         return func_get_args();
@@ -16,6 +22,12 @@ class preg_router_test extends PHPUnit_Framework_TestCase{
 
     public function catch_all(){
         return 'catch-all';
+    }
+
+    public static function call_count(){
+        static $num = 0;
+        $num++;
+        return $num;
     }
 
     public function test_array_construction(){
@@ -65,6 +77,26 @@ EOF
         $this->behavior_test($router);
 
         unlink($fn);
+    }
+
+    public function test_hooks(){
+        $router = new preg_router(array(
+            array(
+                '@.*@',
+                "preg_router_test_function_handler"),
+        ));
+        $router->before_all_handlers(array('preg_router_test', 'call_count'));
+        $router->before_all_handlers('global_call_count');
+        $router->after_all_handlers(function (){
+            global_call_count();
+        });
+        $router->route('/');
+
+        // It's called twice in the preg handlers and once when we test, so: 3.
+        $this->assertEquals(global_call_count(), 3);
+
+        // First from then handlers, then from the test, so: 2.
+        $this->assertEquals(self::call_count(), 2);
     }
 
     /**

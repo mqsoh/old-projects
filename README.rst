@@ -67,6 +67,20 @@ be passed as additional arguments to the function. A route like this::
         }
     }
 
+Hooks.
+------
+If you want to execute code before and/or after your handlers you can use
+*before_all_handlers* and *after_all_handlers*. They use call_user_func on what
+you pass in (with the same arguments passed to the handlers), so they can take
+a string, Closure Object, or an array. Here are the examples from my unit
+test::
+
+    $router->before_all_handlers(array('preg_router_test', 'call_count'));
+    $router->before_all_handlers('global_call_count');
+    $router->after_all_handlers(function (){
+        global_call_count();
+    });
+
 Invoking.
 =========
 
