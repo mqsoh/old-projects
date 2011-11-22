@@ -214,7 +214,7 @@ class preg_router{
      */
     private function prehandlers($args){
         foreach ($this->prehandler_queue as $fun){
-            call_user_func($fun, $args);
+            call_user_func_array($fun, $args);
         }
     }
 
@@ -223,7 +223,7 @@ class preg_router{
      */
     private function posthandlers($args){
         foreach ($this->posthandler_queue as $fun){
-            call_user_func($fun, $args);
+            call_user_func_array($fun, $args);
         }
     }
 }
