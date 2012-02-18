@@ -51,9 +51,11 @@ tests/preg_router_test.php for examples of all three.)
 If the handler is delimited with '::', it's an instance or class method.  All
 classes in the handler will be constructed (even if it's a class method; PHP
 doesn't care if you call a static method on an instance of an object), but no
-arguments are passed to the constructor. All methods will be passed the URI
-that the router used to match. If any groups are defined in the regex they will
-be passed as additional arguments to the function. A route like this::
+arguments are passed to the constructor.
+
+All functions and methods will be passed a request object (see below). If any
+groups are defined in the regex they will be passed as additional arguments to
+the function. A route like this::
 
     [articles]
     pattern = "@/articles/meaningless-seo-friendly-title/(\d+)@"
@@ -62,7 +64,7 @@ be passed as additional arguments to the function. A route like this::
 ...can use a function definition like this::
 
     class ArticlePage{
-        function display($uri, $article_id){
+        function display($req_object, $article_id){
             // $article_id is guaranteed to be provided and also an integer.
         }
     }
@@ -81,6 +83,61 @@ test::
         global_call_count();
     });
 
+Request object.
+---------------
+I'd like to do functional tests on my request handlers. To this end I changed
+the first argument of all handlers to use a *preg_router_request* object.
+
+The request object has a uri property, which is the full URI of the matched
+request. This object also has properties with copies of the PHP superglobals.
+
++-------------------------+-----------------+
+| Request object property | PHP superglobal |
++=========================+=================+
+| server                  | $_SERVER        |
++-------------------------+-----------------+
+| get                     | $_GET           |
++-------------------------+-----------------+
+| post                    | $_POST          |
++-------------------------+-----------------+
+| files                   | $_FILES         |
++-------------------------+-----------------+
+| cookie                  | $_COOKIE        |
++-------------------------+-----------------+
+| session                 | $_SESSION       |
++-------------------------+-----------------+
+| env                     | $_ENV           |
++-------------------------+-----------------+
+
+Doing this provides an easier way of spoofing web requests in tests. If the
+handlers use this request object as their sole means of access to the super
+globals, you could ::
+
+    class MyWebPage {
+        public static function home($req) {
+            if (!empty($req->post['foo'])) {
+                echo $req->post['foo'];
+            }
+        }
+    }
+    class MyTest extends PHPUnit_Framework_TestCase {
+        public function test_home_post() {
+            $req = new preg_router_request('/');
+            $req->get = array('foo' => 'A fake foo.');
+
+            MyWebPage::home($req);
+        }
+    }
+
+If a handler returns a non-empty value, the *preg_router* assumes it's a
+request object and passes it on to the next function. This allows for chaining
+when using the hooks and handlers. It also can serve as an application state;
+if you were to augment it with a property, it'd be available to all later
+functions. You might want to do some output buffer management, for instance.
+
+It strikes me that this object isn't really a 'request'. I'm trying to think of
+a better name.
+
 Invoking.
 =========
 
@@ -89,8 +146,7 @@ definition, I have this::
 
     RewriteEngine On
     RewriteBase /
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-fd
     RewriteRule . /index.php [L]
 
 And in the docroot, I have an index.php that looks like this::

@@ -1,33 +1,43 @@
 <?php
 require_once(dirname(__FILE__).'/../src/preg_router.php');
 
-function preg_router_test_function_handler(){
-    return func_get_args();
+function preg_router_test_function_handler($req){
+    $req->function_handler_args = array_slice(func_get_args(), 1);
+    return $req;
 }
 
-function global_call_count(){
+function global_call_count($req){
     static $num = 0;
-    $num++;
-    return $num;
+    $num += 1;
+    $req->global_call_count = $num;
+    return $req;
+}
+
+function ignore_req($req) {
+    // pass
 }
 
 class preg_router_test extends PHPUnit_Framework_TestCase{
-    public function instance_method_handler(){
-        return func_get_args();
+    public function instance_method_handler($req){
+        $req->instance_method_args = array_slice(func_get_args(), 1);
+        return $req;
     }
 
-    public static function class_method_handler(){
-        return func_get_args();
+    public static function class_method_handler($req){
+        $req->class_method_args = array_slice(func_get_args(), 1);
+        return $req;
     }
 
-    public function catch_all(){
-        return 'catch-all';
+    public function catch_all($req){
+        $req->catch_all = 'catch-all';
+        return $req;
     }
 
-    public static function call_count(){
+    public static function call_count($req){
         static $num = 0;
-        $num++;
-        return $num;
+        $num += 1;
+        $req->call_count = $num;
+        return $req;
     }
 
     public function test_array_construction(){
@@ -86,17 +96,15 @@ EOF
                 "preg_router_test_function_handler"),
         ));
         $router->before_all_handlers(array('preg_router_test', 'call_count'));
+        $router->before_all_handlers('ignore_req');
         $router->before_all_handlers('global_call_count');
-        $router->after_all_handlers(function (){
-            global_call_count();
-        });
-        $router->route('/');
+        $router->after_all_handlers(function ($req){
+            global_call_count($req);});
+        $router->after_all_handlers('ignore_req');
+        $resp = $router->route('/');
 
-        // It's called twice in the preg handlers and once when we test, so: 3.
-        $this->assertEquals(global_call_count(), 3);
-
-        // First from then handlers, then from the test, so: 2.
-        $this->assertEquals(self::call_count(), 2);
+        $this->assertEquals($resp->global_call_count, 2);
+        $this->assertEquals($resp->call_count, 1);
     }
 
     /**
@@ -104,28 +112,33 @@ EOF
      */
     public function behavior_test($router){
         $uri = '/function-handler/foo?foo=bar';
+        $resp = $router->route($uri);
         $this->assertEquals(
-            $router->route($uri),
-            array($uri, 'foo', 'bar'));
+            $resp->function_handler_args,
+            array('foo', 'bar'));
 
         $uri = '/instance-method-handler/foo?foo=bar';
+        $resp = $router->route($uri);
         $this->assertEquals(
-            $router->route($uri),
-            array($uri, 'foo', 'bar'));
+            $resp->instance_method_args,
+            array('foo', 'bar'));
 
         $uri = '/class-method-handler/foo?foo=bar';
+        $resp = $router->route($uri);
         $this->assertEquals(
-            $router->route($uri),
-            array($uri, 'foo', 'bar'));
+            $resp->class_method_args,
+            array('foo', 'bar'));
 
         $uri = '/';
+        $resp = $router->route($uri);
         $this->assertEquals(
-            $router->route($uri),
+            $resp->catch_all,
             'catch-all');
 
         $uri = '/bunch/o/crap';
+        $resp = $router->route($uri);
         $this->assertEquals(
-            $router->route($uri),
+            $resp->catch_all,
             'catch-all');
     }
 }

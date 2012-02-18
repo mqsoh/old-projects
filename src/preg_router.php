@@ -17,8 +17,8 @@
  */
 
 /**
- * This is a simple regex router. It uses a dosini file for route definitions
- * or an array of arrays (passed to the constructor).
+ * This is a regex router. It uses a dosini file for route definitions or an
+ * array of arrays (passed to the constructor).
  *
  * Native array spec.
  * ==================
@@ -28,7 +28,7 @@
  *
  *     array(
  *         array('/foo/bar', 'Some::handler'),
- *         array('/bar/baz', 'Other::handler'),
+ *         array('/baz/buzz', 'Other::handler'),
  *     )
  *
  * Ini file spec.
@@ -62,7 +62,7 @@ class preg_router{
      * Constructs the router.
      *
      * @param * $routes
-     *     If $routs is a string, it's the path to a dosini file to use for
+     *     If $routes is a string, it's the path to a dosini file to use for
      *     route definitions. If it's an array, it's an array with nested
      *     arrays. See the class documentation for the spec.
      */
@@ -139,9 +139,12 @@ class preg_router{
                 // with query params seems to be truncated to the exact portion
                 // of the URI matched, but the pattern may have been
                 // open-ended.
-                $groups[0] = $uri;
+                $groups[0] = new preg_router_request($uri);
 
-                $this->prehandlers($groups);
+                $prehandler_response = $this->prehandlers($groups);
+                if ($prehandler_response) {
+                    $groups[0] = $prehandler_response;
+                }
 
                 $route = $this->routes[$route_name];
                 $arr = explode('::', $route['handler']);
@@ -156,19 +159,23 @@ class preg_router{
                     if (!function_exists($function_name)){
                         throw new preg_router_error("No function '$function_name' exists.");
                     }
-                    $resp = call_user_func_array($function_name, $groups);
+                    $handler_resp = call_user_func_array($function_name, $groups);
+                    if ($handler_resp) {
+                        $groups[0] = $handler_resp;
+                    }
 
-                    $this->posthandlers($groups);
-                    return $resp;
+                    return $this->posthandlers($groups);
                 }
                 else if ($pieces == 2){
                     // Handler is a method.
                     $class_name = $arr[0];
                     $method_name = $arr[1];
-                    $resp = $this->handle_method($class_name, $method_name, $groups);
+                    $handler_resp = $this->handle_method($class_name, $method_name, $groups);
+                    if ($handler_resp) {
+                        $groups[0] = $handler_resp;
+                    }
 
-                    $this->posthandlers($groups);
-                    return $resp;
+                    return $this->posthandlers($groups);
                 }
                 else{
                     throw new preg_router_error("Malformed handler for route '$route_name'.");
@@ -214,8 +221,13 @@ class preg_router{
      */
     private function prehandlers($args){
         foreach ($this->prehandler_queue as $fun){
-            call_user_func_array($fun, $args);
+            $resp = call_user_func_array($fun, $args);
+            if ($resp) {
+                $args[0] = $resp;
+            }
         }
+
+        return $args[0];
     }
 
     /**
@@ -223,9 +235,72 @@ class preg_router{
      */
     private function posthandlers($args){
         foreach ($this->posthandler_queue as $fun){
-            call_user_func_array($fun, $args);
+            $resp = call_user_func_array($fun, $args);
+            if ($resp) {
+                $args[0] = $resp;
+            }
+        }
+
+        return $args[0];
+    }
+}
+
+/**
+ * A container for router requests. Prehandlers, handlers, and posthandlers
+ * will be passed one of these. They may also return one of these and any
+ * subsequent function call will receive the updated copy. I'm providing this
+ * to allow for functional testing of pure function request handlers. You can
+ * spoof any aspect of a web request.
+ */
+class preg_router_request {
+    public $uri = null;
+    public $server = null;
+    public $get = null;
+    public $post = null;
+    public $files = null;
+    public $cookie = null;
+    public $session = null;
+    public $env = null;
+
+    /**
+     * The local copies of the superglobals will be initialized to the current
+     * state of the superglobal if it isn't empty.
+     */
+    public function __construct($uri = null) {
+        $this->uri = $uri;
+
+        if (!empty($_SERVER)) {
+            $this->server = $_SERVER;
+        }
+
+        if (!empty($_GET)) {
+            $this->get = $_GET;
+        }
+
+        if (!empty($_POST)) {
+            $this->post = $_POST;
+        }
+
+        if (!empty($_FILES)) {
+            $this->files = $_FILES;
+        }
+
+        if (!empty($_COOKIE)) {
+            $this->cookie = $_COOKIE;
+        }
+
+        if (!empty($_SESSION)) {
+            $this->session = $_SESSION;
+        }
+
+        if (!empty($_ENV)) {
+            $this->env = $_ENV;
         }
     }
 }
+
+/**
+ * Any kind of error with the preg_router. It's the message that's significant.
+ */
 class preg_router_error extends Exception{}
 ?>
