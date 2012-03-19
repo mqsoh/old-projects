@@ -7,9 +7,10 @@ script.
 Requirements
 ============
 
-*PHP 5.3+* -- dbdo has a namespace definition. It's feasible to remove it (and
-possibly rename functions to avoid collisions with other libraries) to make it
-compatible with PHP 5.2.
+PHP 5.3+:
+    dbdo has a namespace definition. It's feasible to remove it (and
+    possibly rename functions to avoid collisions with other libraries) to make it
+    compatible with PHP 5.2.
 
 Command line script usage
 =========================
