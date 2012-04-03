@@ -17,7 +17,11 @@ Command line script usage
 
 ::
 
-    dbdo-cli.php [-h] database_url directory command [command_arguments]
+    dbdo-cli.php [-h] application database_url directory command [command_arguments]
+
+application
+    This will be suffixed to the dbdo_migration table. It's a way of tracking
+    multiple applications in the same database.
 
 database_url:
     The MySQL database URL. I forgot what it's called, but it's of the form ::
