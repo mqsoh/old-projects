@@ -6,6 +6,11 @@ $database_connections = array();
 /**
  * A list of all the migrations.
  *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
+ *
  * @param string $database_url
  *     A URL in the form of: mysqli://user:password@host/database.
  *
@@ -38,10 +43,10 @@ $database_connections = array();
  *             ...
  *             array($time_run_or_null, $name, $title, $description))
  */
-function list_migrations($database_url, $dir) {
+function list_migrations($app, $database_url, $dir) {
     $all_migrations = array();
 
-    $migrations_run = all_run_migrations($database_url);
+    $migrations_run = all_run_migrations($app, $database_url);
 
     foreach (array_diff(scandir($dir), array('.', '..')) as $migration) {
         $migration_dir = "$dir/$migration";
@@ -77,6 +82,11 @@ function list_migrations($database_url, $dir) {
  * Runs a migration against the database, first checking that it hasn't already
  * been run.
  *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
+ *
  * @param string $database_url
  *     The URL to the database in the form of:
  *         mysqli://user:password@host/database.
@@ -99,7 +109,7 @@ function list_migrations($database_url, $dir) {
  *             echo "Error. The code was $code, with message '$message'.";
  *         }
  */
-function run($database_url, $dir, $name) {
+function run($app, $database_url, $dir, $name) {
     $fn = "$dir/$name/up.sql";
 
     // Short circuit for the migration's file missing.
@@ -108,7 +118,7 @@ function run($database_url, $dir, $name) {
     }
 
     // Short circuit for migrations that have already been run.
-    $all_run = all_run_migrations($database_url);
+    $all_run = all_run_migrations($app, $database_url);
     if (in_array($name, array_keys($all_run))) {
         return array(false, array(0, "Migration already run."));
     }
@@ -116,8 +126,9 @@ function run($database_url, $dir, $name) {
     list($ok, $resp) = query($database_url, file_get_contents($fn));
 
     if ($ok) {
+        $app = scrub_app_name($app);
         $q = sprintf("
-            insert into dbdo_migration (name, ran)
+            insert into dbdo_migration_$app (name, ran)
             values ('%s', '%s');",
             mysqli_escape_string(database_connection($database_url), $name),
             date('Y-m-d H:i:s'));
@@ -125,7 +136,7 @@ function run($database_url, $dir, $name) {
 
         if (!$ok) {
             list($code, $error) = $resp;
-            return array(false, array(0, "The migration $name was run but we failed to log the migration to the dbdo_migration table ($error)."));
+            return array(false, array(0, "The migration $name was run but we failed to log the migration to the dbdo_migration_$app table ($error)."));
         }
     }
 
@@ -134,6 +145,11 @@ function run($database_url, $dir, $name) {
 
 /**
  * Undoes a migration, first checking that it has already been run.
+ *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
  *
  * @param string $database_url
  *     The URL to the database in the form of:
@@ -156,7 +172,7 @@ function run($database_url, $dir, $name) {
  *             echo "Error. The code was $code, with message '$message'.";
  *         }
  */
-function unrun($database_url, $dir, $name) {
+function unrun($app, $database_url, $dir, $name) {
     $fn = "$dir/$name/down.sql";
 
     // Short circuit for the migration's file missing.
@@ -165,7 +181,7 @@ function unrun($database_url, $dir, $name) {
     }
 
     // Short circuit for a migration that has not been run.
-    $all_run = all_run_migrations($database_url);
+    $all_run = all_run_migrations($app, $database_url);
     if (!in_array($name, array_keys($all_run))) {
         return array(false, array(0, "Migration hasn't been run."));
     }
@@ -173,8 +189,9 @@ function unrun($database_url, $dir, $name) {
     list($ok, $resp) = query($database_url, file_get_contents($fn));
 
     if ($ok) {
+        $app = scrub_app_name($app);
         $q = sprintf("
-            delete from dbdo_migration
+            delete from dbdo_migration_$app
             where name = '%s';",
             mysqli_escape_string(database_connection($database_url), $name));
 
@@ -182,7 +199,7 @@ function unrun($database_url, $dir, $name) {
 
         if (!$ok) {
             list($code, $error) = $resp;
-            return array(false, array(0, "The migration $name was unrun but we failed to remove the migration to the dbdo_migration table ($error)."));
+            return array(false, array(0, "The migration $name was unrun but we failed to remove the migration to the dbdo_migration_$app table ($error)."));
         }
     }
 
@@ -191,6 +208,11 @@ function unrun($database_url, $dir, $name) {
 
 /**
  * Runs all unrun migrations in $dir.
+ *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
  *
  * @param string $database_url
  *     The URL to the database in the form of:
@@ -213,14 +235,14 @@ function unrun($database_url, $dir, $name) {
  *             array('failed-name',
  *                   'Error message.'))
  */
-function run_all($database_url, $dir) {
-    $all_run = array_keys(all_run_migrations($database_url));
+function run_all($app, $database_url, $dir) {
+    $all_run = array_keys(all_run_migrations($app, $database_url));
 
     $successes = array();
 
     foreach (array_diff(scandir($dir), array('.', '..')) as $migration) {
         if (!in_array($migration, $all_run)) {
-            list($ok, $resp) = run($database_url, $dir, $migration);
+            list($ok, $resp) = run($app, $database_url, $dir, $migration);
 
             // Short circuit when a migration fails.
             if (!$ok) {
@@ -238,6 +260,11 @@ function run_all($database_url, $dir) {
 /**
  * Unruns all run migrations.
  *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
+ *
  * @param string $database_url
  *     The URL to the database in the form of:
  *         mysqli://user:password@host/database.
@@ -259,13 +286,13 @@ function run_all($database_url, $dir) {
  *             array('failed-name',
  *                   'Error message.'))
  */
-function unrun_all($database_url, $dir) {
-    $all_run = array_reverse(array_keys(all_run_migrations($database_url)));
+function unrun_all($app, $database_url, $dir) {
+    $all_run = array_reverse(array_keys(all_run_migrations($app, $database_url)));
 
     $successes = array();
 
     foreach ($all_run as $migration_name) {
-        list($ok, $resp) = unrun($database_url, $dir, $migration_name);
+        list($ok, $resp) = unrun($app, $database_url, $dir, $migration_name);
         if (!$ok) {
             list($code, $reason) = $resp;
             return array(false, $successes, array($migration_name, $reason));
@@ -279,6 +306,11 @@ function unrun_all($database_url, $dir) {
 
 /**
  * Unruns all migrations that were run after a certain time.
+ *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
  *
  * @param string $database_url
  *     The URL to the database in the form of:
@@ -304,14 +336,14 @@ function unrun_all($database_url, $dir) {
  *             array('failed-name',
  *                   'Error message.'))
  */
-function unrun_after_time($database_url, $dir, $time) {
-    $all_run = array_reverse(all_run_migrations($database_url));
+function unrun_after_time($app, $database_url, $dir, $time) {
+    $all_run = array_reverse(all_run_migrations($app, $database_url));
 
     $successes = array();
 
     foreach ($all_run as $name => $time_ran) {
         if (strtotime($time_ran) > $time) {
-            list($ok, $resp) = unrun($database_url, $dir, $name);
+            list($ok, $resp) = unrun($app, $database_url, $dir, $name);
 
             if (!$ok) {
                 list($code, $reason) = $resp;
@@ -327,6 +359,11 @@ function unrun_after_time($database_url, $dir, $time) {
 
 /**
  * Unruns all migrations that were run after a certain migration.
+ *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
  *
  * @param string $database_url
  *     The URL to the database in the form of:
@@ -352,8 +389,8 @@ function unrun_after_time($database_url, $dir, $time) {
  *             array('failed-name',
  *                   'Error message.'))
  */
-function unrun_after_migration($database_url, $dir, $name) {
-    $all_run = array_keys(all_run_migrations($database_url));
+function unrun_after_migration($app, $database_url, $dir, $name) {
+    $all_run = array_keys(all_run_migrations($app, $database_url));
 
     // Find the index of the referenced migration.
     $referenced_ii = 0;
@@ -368,7 +405,7 @@ function unrun_after_migration($database_url, $dir, $name) {
     $successes = array();
 
     foreach ($to_unrun as $migration_name) {
-        list($ok, $resp) = unrun($database_url, $dir, $migration_name);
+        list($ok, $resp) = unrun($app, $database_url, $dir, $migration_name);
 
         if (!$ok) {
             list($code, $reason) = $resp;
@@ -452,6 +489,11 @@ function query($url, $query) {
 /**
  * Returns a sorted list of all the run migrations stored in the database.
  *
+ * @param string $app
+ *     An application name, which is a suffix to the table name that tracks
+ *     migrations. This allows you to run multiple applications in the same
+ *     database.
+ *
  * @param string $url
  *     The database URL.
  *
@@ -464,10 +506,15 @@ function query($url, $query) {
  *             ...
  *             $name => $time_run)
  */
-function all_run_migrations($url) {
+function all_run_migrations($app, $url) {
+    $app = scrub_app_name($app);
+
     $run = array();
 
-    list($status, $resp) = query($url, 'SELECT * FROM dbdo_migration ORDER BY ran ASC');
+    list($status, $resp) = query($url, "
+        select *
+        from dbdo_migration_$app
+        order by ran asc");
 
     if (!$status) {
         // Error handling.
@@ -475,11 +522,12 @@ function all_run_migrations($url) {
         if ($code == '42S02') {
             // Table doesn't exist: let's create it.
             $desc = 'Dbdo is a library and command line utility for managing a MySQL database.';
-            query($url, "CREATE TABLE dbdo_migration (
-                id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                ran TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) COMMENT = '$desc';");
+            query($url, "
+                create table dbdo_migration_$app (
+                    id integer auto_increment primary key,
+                    name varchar(100) not null,
+                    ran timestamp default current_timestamp
+                ) comment = '$desc';");
         }
     }
     else {
@@ -504,5 +552,14 @@ function all_run_migrations($url) {
     }
 
     return $run;
+}
+
+/**
+ * It's just ugly, so we'll abstract it.
+ *
+ * @param string $app
+ */
+function scrub_app_name($app) {
+    return preg_replace('/[^\\w]/', '', $app);
 }
 ?>

@@ -14,7 +14,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_db_url;
         global $test_dir;
 
-        $list_of_migrations = dbdo\list_migrations($test_db_url, $test_dir);
+        $list_of_migrations = dbdo\list_migrations('test', $test_db_url, $test_dir);
 
         $this->assertEquals($list_of_migrations, array(
             array(
@@ -41,13 +41,13 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_db_url;
         global $test_dir;
 
-        list($ok, $resp) = dbdo\run($test_db_url, $test_dir, '01-one');
+        list($ok, $resp) = dbdo\run('test', $test_db_url, $test_dir, '01-one');
         $this->assertEquals($ok, true);
 
-        list($ok, $resp) = dbdo\run($test_db_url, $test_dir, '02-two');
+        list($ok, $resp) = dbdo\run('test', $test_db_url, $test_dir, '02-two');
         $this->assertEquals($ok, true);
 
-        list($ok, $resp) = dbdo\run($test_db_url, $test_dir, '03-three');
+        list($ok, $resp) = dbdo\run('test', $test_db_url, $test_dir, '03-three');
         $this->assertEquals($ok, false);
         $this->assertEquals(count($resp), 2);
     }
@@ -59,7 +59,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_db_url;
         global $test_dir;
 
-        list($ok, $resp) = dbdo\unrun($test_db_url, $test_dir, '02-two');
+        list($ok, $resp) = dbdo\unrun('test', $test_db_url, $test_dir, '02-two');
         $this->assertEquals($ok, true);
     }
 
@@ -70,7 +70,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_db_url;
         global $test_dir;
 
-        list($ok, $successes, $failure) = dbdo\run_all($test_db_url, $test_dir);
+        list($ok, $successes, $failure) = dbdo\run_all('test', $test_db_url, $test_dir);
 
         $this->assertEquals($ok, false);
         $this->assertEquals($successes, array('02-two'));
@@ -85,7 +85,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_db_url;
         global $test_dir;
 
-        list($ok, $successes, $failure) = dbdo\unrun_all($test_db_url, $test_dir);
+        list($ok, $successes, $failure) = dbdo\unrun_all('test', $test_db_url, $test_dir);
         $this->assertEquals($ok, true);
         $this->assertEquals($successes, array('02-two', '01-one'));
         $this->assertEquals($failure, null);
@@ -99,7 +99,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_dir;
 
         // Run all first, because the previous test will have unrun everything.
-        list($ok, $successes, $failure) = dbdo\run_all($test_db_url, $test_dir);
+        list($ok, $successes, $failure) = dbdo\run_all('test', $test_db_url, $test_dir);
 
         $this->assertEquals($ok, false);
         $this->assertEquals($successes, array('01-one', '02-two'));
@@ -108,7 +108,7 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
 
         // Now unrun everything run in the past 5 minutes, which will be
         // everything.
-        list($ok, $successes, $failure) = dbdo\unrun_after_time($test_db_url, $test_dir, '-5 minutes');
+        list($ok, $successes, $failure) = dbdo\unrun_after_time('test', $test_db_url, $test_dir, '-5 minutes');
         $this->assertEquals($ok, true);
         $this->assertEquals($successes, array('02-two', '01-one'));
         $this->assertEquals($failure, null);
@@ -122,14 +122,14 @@ class dbdo_test extends PHPUnit_Framework_TestCase {
         global $test_dir;
 
         // Run all first, because the previous test will have unrun everything.
-        list($ok, $successes, $failure) = dbdo\run_all($test_db_url, $test_dir);
+        list($ok, $successes, $failure) = dbdo\run_all('test', $test_db_url, $test_dir);
 
         $this->assertEquals($ok, false);
         $this->assertEquals($successes, array('01-one', '02-two'));
         $this->assertEquals(count($failure), 2);
         $this->assertEquals($failure[0], '03-three');
 
-        list($ok, $successes, $failure) = dbdo\unrun_after_migration($test_db_url, $test_dir, '01-one');
+        list($ok, $successes, $failure) = dbdo\unrun_after_migration('test', $test_db_url, $test_dir, '01-one');
         $this->assertEquals(true, $ok);
         $this->assertEquals(array('02-two'), $successes);
         $this->assertEquals(null, $failure);

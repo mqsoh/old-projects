@@ -8,7 +8,11 @@ function print_usage() {
     echo <<<EOF
 dbdo: Library and command line script for managing a MySQL database.
 
-Usage: dbdo.php [-h] database_url directory command [command_arguments]
+Usage: dbdo.php [-h] application database_url directory command [command_arguments]
+
+    application
+        This will be suffixed to the dbdo_migration table. It's a way of
+        tracking multiple applications in the same database.
 
     database_url
         The MySQL database URL. I forgot what it's called, but it's of the form
@@ -75,20 +79,21 @@ if (php_sapi_name() == 'cli') {
     }
 
     // Short circuit for invalid input.
-    if ($argc < 4) {
-        error("Too few arguments.");
+    if ($argc < 5) {
+        error("Too few arguments. Run with -h for help.");
         die();
     }
 
-    $database_url = $argv[1];
-    $dir = $argv[2];
-    $command = $argv[3];
-    $command_arg = empty($argv[4]) ? null : $argv[4];
+    $app = $argv[1]
+    $database_url = $argv[2];
+    $dir = $argv[3];
+    $command = $argv[4];
+    $command_arg = empty($argv[5]) ? null : $argv[5];
 
     if ($command == 'list') {
         // List all migrations.
         print_list(
-            dbdo\list_migrations($database_url, $dir));
+            dbdo\list_migrations($app, $database_url, $dir));
     }
     else if ($command == 'run') {
         // Run a specific migration.
@@ -96,7 +101,7 @@ if (php_sapi_name() == 'cli') {
             error("You must provide a fourth argument: the migration name.");
             die();
         }
-        list($ok, $resp) = dbdo\run($database_url, $dir, $command_arg);
+        list($ok, $resp) = dbdo\run($app, $database_url, $dir, $command_arg);
 
         if ($ok) {
             info("Migration $command_arg has been run.");
@@ -113,7 +118,7 @@ if (php_sapi_name() == 'cli') {
             die();
         }
 
-        list($ok, $resp) = dbdo\unrun($database_url, $dir, $command_arg);
+        list($ok, $resp) = dbdo\unrun($app, $database_url, $dir, $command_arg);
 
         if ($ok) {
             info("Migration $command_arg has been unrun.");
@@ -125,7 +130,7 @@ if (php_sapi_name() == 'cli') {
     }
     else if ($command == 'run-all') {
         // Run all new migrations.
-        list($ok, $successes, $failure) = dbdo\run_all($database_url, $dir);
+        list($ok, $successes, $failure) = dbdo\run_all($app, $database_url, $dir);
 
         if (!empty($successes)) {
             $str = '';
@@ -143,7 +148,7 @@ if (php_sapi_name() == 'cli') {
     }
     else if ($command == 'unrun-all') {
         // Unrun all migrations.
-        list($ok, $successes, $failure) = dbdo\unrun_all($database_url, $dir);
+        list($ok, $successes, $failure) = dbdo\unrun_all($app, $database_url, $dir);
 
         if (!empty($successes)) {
             $str = '';
@@ -169,7 +174,7 @@ if (php_sapi_name() == 'cli') {
 
         $time = strtotime($command_arg);
 
-        list($ok, $successes, $failure) = dbdo\unrun_after_time($database_url, $dir, $time);
+        list($ok, $successes, $failure) = dbdo\unrun_after_time($app, $database_url, $dir, $time);
 
         if (!empty($successes)) {
             $str = '';
@@ -192,7 +197,7 @@ if (php_sapi_name() == 'cli') {
             die();
         }
 
-        list($ok, $successes, $failure) = dbdo\unrun_after_migration($database_url, $dir, $command_arg);
+        list($ok, $successes, $failure) = dbdo\unrun_after_migration($app, $database_url, $dir, $command_arg);
 
         if (!empty($successes)) {
             $str = '';
