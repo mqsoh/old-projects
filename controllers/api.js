@@ -1,5 +1,4 @@
 var request = require('request');
-var url = require('url');
 var cache = require('memory-cache');
 
 /**

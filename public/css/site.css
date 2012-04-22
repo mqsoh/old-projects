@@ -1,0 +1,41 @@
+body {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.nav {
+  text-align:left;
+  width: 100%;
+  background-color: #2e3436;
+  color: #eeeeec;
+}
+.nav a{
+  color: #eeeeec;
+  padding:10px;
+  text-decoration: none;
+  display: inline-block;
+}
+.nav a.home{
+  font-size: 120%;
+  font-weight: bold;
+  color: #fce94f;
+}
+.nav a.current{
+  color: #888a85;
+}
+
+.page {
+  text-align:left;
+  margin: 0 auto;
+  width: 950px;
+  max-width: 950px;
+  width: auto !important;
+}
+
+.planet-table table th {
+  background-color: #2e3436;
+  color: #eeeeec;
+  padding: 5px;
+  vertical-align: bottom;
+}

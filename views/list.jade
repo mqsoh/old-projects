@@ -1,0 +1,27 @@
+!!! 5
+html
+  head
+    title Not used, fool.
+    meta(charset="utf-8")
+
+  body
+    .nav
+      a.home(href="/") The Kepler Kompanion
+      a(href="/exoplanet-visualization") Exoplanet Visualization
+      a.current(href="/exoplanet-list") Exoplanet List
+
+    .page.planet-table
+      p This is the complete list of exoplanets. There's a lot; these are the confirmed exoplanets from <a target="_blank" href="http://en.wikipedia.org/wiki/File:LombergA1024.jpg">a narrow region of space</a>.
+
+      table
+        thead
+          - var labels = ['Name', 'Mass relative to Jupiter', 'Mass relative to Earth', 'Radius relative to Jupiter', 'Radius relative to Earth', 'Publication Date']
+          each label in labels
+            th= label
+
+        tbody
+          each planet in sorted_exoplanets
+            tr
+              - var field_order = ['name', 'mass_jupiter', 'mass_earth', 'radius_jupiter', 'radius_earth', 'date']
+              each field in field_order
+                td= planet[field]
