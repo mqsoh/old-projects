@@ -1,4 +1,6 @@
 nyc-kepler
 ==========
 
-A segment of the New York team of the International Spaceapps Challenge is working on Kepler data visualization.
+Nyc-kepler is called the Kepler Companion. You can see it here:
+
+http://keplercompanion.org/
