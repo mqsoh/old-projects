@@ -1,74 +1,101 @@
-var jsdom = require('jsdom');
 var request = require('request');
 var url = require('url');
 var cache = require('memory-cache');
 
-exports.kepler = {};
+/**
+ * Prints to 'resp' a big list of exoplanets from exoplanets.org.
+ *
+ * @param req
+ * @param resp
+ *
+ * @return
+ *   A big JSON object.
+ */
+exports.exoplanets = function (req, res) {
+  var cache_key = 'masons-holiday-destinations';
+  var csv = 'http://exoplanets.org/exoplanets.csv';
+  var stored = cache.get(cache_key);
 
-exports.kepler.confirmed_planets = function (req, res) {
-  var planets = null;
-  jsdom.env('http://kepler.nasa.gov/Mission/discoveries/',
-    ['http://code.jquery.com/jquery.min.js'],
-    function (error, window) {
-      var $ = window.jQuery;
-      planets = [];
+  if (stored) {
+    res.send(stored);
+    return;
+  }
+  request(csv, function (error, response, body) {
+    console.log('Fetching ' + csv);
 
-      $('#example tbody tr').each(function (index, row) {
-        var $row = $(row);
-        var $cols = $row.find('td');
-        var numcols = $cols.length;
-        var planet = null;
+    var planets = [];
+    var planet = null;
+    var column_names = null;
 
-        var column_map = [
-          'name',
-          'koi_number',
-          'jupiter_masses',
-          'earth_masses',
-          'jupited_radii',
-          'earth_radii',
-          'density',
-          'temp',
-          'transit_duration',
-          'period',
-          'semi_major_axis',
-          'eccentricity',
-          'inclination',
-          'distance',
-          'solar_temp',
-          'solar_mass',
-          'solar_radii',
-          'solar_metallicity',
-          'solar_right_ascension',
-          'solar_declination',
-          'solar_mag',
-          'last_updated'];
+    body = body.replace('\r', '\n');
 
-        if (numcols == 22) {
-          // It's a planetary row. Why 22? Just because. :(
-          planet = {};
+    var lines = body.split('\n');
 
-          $cols.each(function (index, col) {
-            var $col = $(col);
-            var val = $col.text().replace(/^[^\n]+\n/, '');
+    for (var ii in lines) {
+      var line = lines[ii];
 
-            if (index < column_map.length){
-              planet[column_map[index]] = val;
-            }
-          });
-        }
-
-        if (planet) {
-          planets.push(planet);
-        }
-      });
-
-      if (!planets || planets.length < 1) {
-        planets = null;
+      if (line.length < 1) {
+        continue;
       }
 
-      console.log('fetch_kepler_planets: Got planets.');
-      console.log(planets);
-      res.send(planets);
+      if (ii == 0) {
+        column_names = csv_columns(line);
+        continue;
+      }
+
+      planet = {};
+      var cols = csv_columns(line);
+      for (var jj in cols) {
+        var col = cols[jj];
+        planet[column_names[jj].toLowerCase()] = col;
+      }
+
+      planets.push(planet);
     }
-  );
+
+    cache.put(cache_key, planets, 24 * 60 * 60);
+
+    res.json(planets);
+  });
+}
+
+/**
+ * I guess node doesn't have this. Seems kind of unlikely, but...
+ *
+ * @param string line
+ *   A string with some commas in it.
+ *
+ * @return
+ *   A list of some strings.
+ */
+function csv_columns(line) {
+  var cols = [];
+  var prev_c = null;
+  var col_buffer = '';
+  var in_string = false;
+
+  var chars = line.split('');
+  for (var ii in chars) {
+    var c = chars[ii];
+
+    if (c == ',' && !in_string) {
+      cols.push(col_buffer);
+      col_buffer = '';
+      continue;
+    }
+
+    if (c == '"' && prev_c != '\\') {
+      in_string = !in_string;
+    }
+
+    if (!in_string || (in_string && c != '\\')) {
+      col_buffer += c;
+    }
+
+    prev_c = c;
+  }
+
+  cols.push(col_buffer);
+
+  return cols;
 }

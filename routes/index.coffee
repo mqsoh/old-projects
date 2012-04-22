@@ -6,7 +6,6 @@ routes = (app) ->
     res.render 'index',
       title: 'NYC Kepler'
 
-  app.get '/api/kepler/confirmed-planets', api.kepler.confirmed_planets
-  app.get '/fake-nasa-page', api.kepler.nasa_web_page
+  app.get '/api/exoplanets', api.exoplanets
 
 module.exports = routes
