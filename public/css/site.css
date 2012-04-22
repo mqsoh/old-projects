@@ -1,0 +1,72 @@
+body {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  background-color: #ffffec
+}
+
+.nav {
+  text-align:left;
+  width: 100%;
+  background-color: #2e3436;
+  color: #eeeeec;
+}
+.nav a{
+  color: #eeeeec;
+  padding:10px;
+  text-decoration: none;
+  display: inline-block;
+}
+.nav a.home{
+  font-size: 120%;
+  font-weight: bold;
+  color: #fce94f;
+}
+.nav a.current{
+  color: #888a85;
+}
+
+.footer {
+  text-align: right;
+  width: 100%;
+  margin-top: 30px;
+  padding: 10px 0;
+  border-top: solid 1px #2e3436;
+}
+
+.page {
+  text-align:left;
+  margin: 0 auto;
+  width: 950px;
+  max-width: 950px;
+  width: auto !important;
+}
+
+.planet-table table th.name {
+  width: 130px;
+}
+.planet-table table th {
+  background-color: #2e3436;
+  color: #eeeeec;
+  padding: 5px;
+  vertical-align: bottom;
+}
+.planet-table table a {
+  color: #204a87;
+}
+.planet-table table tbody tr:nth-child(even) {
+  background-color: #eeeeec
+}
+
+
+.paper {
+  background-color: #2e3436;
+  border: solid 4px #2e3436;;
+}
+
+a.nasa-link {
+  display: inline-block;
+  width: 38px;
+  height: 32px;
+  background-image: url(/images/nasa-logo.png);
+}

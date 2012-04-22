@@ -1,12 +1,13 @@
 configs = require '../configs'
 api = require '../controllers/api'
+site = require '../controllers/site'
 
 routes = (app) ->
-  app.get '/', (req, res) ->
-    res.render 'index',
-      title: 'NYC Kepler'
+  app.get '/', site.home
+  app.get '/exoplanet-visualization', site.visualization
+  app.get '/exoplanet-list', site.list
+  app.get '/exoplanet/:name', site.show
 
-  app.get '/api/kepler/confirmed-planets', api.kepler.confirmed_planets
-  app.get '/fake-nasa-page', api.kepler.nasa_web_page
+  app.get '/api/exoplanets', api.exoplanets
 
 module.exports = routes

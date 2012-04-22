@@ -1,20 +1,34 @@
 !!! 5
 html
   head
-    title Transparen.cc
+    title Not used, fool.
     meta(charset="utf-8")
 
-    script(type="text/javascript", src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js")  
-
-
   body
-    .navbar.navbar-fixed-top
-      .navbar-inner
-        .container
-          a.brand #{title}
+    .nav
+      a.home(href="/") The Kepler Companion
+      a(href="/exoplanet-visualization") Exoplanet Visualization
+      a(href="/exoplanet-list") Exoplanet List
 
-    .container
-      .hero-unit
-        h1= title
+    .page
+      p
+        | This site is brought to you by the following members of the New York, NY team of <a href="http://spaceappschallenge.org">The International Space Apps Challenge</a>.
 
-  script(type="text/javascript", src="js/index.js")
+      ul
+        li
+          a(href="http://spaceshares.tumblr.com/") Jeanne Brooks
+
+        li
+          a(href="http://masondu.com/") Mason Du
+
+        li
+          a(href="https://github.com/mqsoh") Mason Staugler
+
+        li
+          a(href="https://plus.google.com/u/0/105313798760165298030/posts") Metapsyche
+
+      p Data for this tool is generously provided by <a href="http://exoplanets.org">Exoplanets.org</a>
+
+      p The code for this site (a Node.Js application) is available at <a href="https://github.com/mqsoh/nyc-kepler">the nyc-kepler GitHub repository</a>.
+
+    .footer Brought to you by the New York, NY team of <a href="http://spaceappschallenge.org">The International Space Apps Challenge</a>.
