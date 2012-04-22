@@ -13,6 +13,7 @@ html
 
     .page
       h1 #{planet.name}
+      p Get more information at <a href="http://kepler.nasa.gov/Mission/discoveries/#{planet.nasa_token}/">NASA's Kepler mission page for #{planet.name}</a>.
 
       h2 Relative radius.
       if (!planet.radius_earth || planet.radius_earth == '--')

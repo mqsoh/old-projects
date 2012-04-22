@@ -122,6 +122,7 @@ function sort_teh_planets(planets) {
 
       filtered_planet.name = planet.name;
       filtered_planet.token = planet.name.toLowerCase().replace(' ', '-');
+      filtered_planet.nasa_token = filtered_planet.token.replace(/[^a-zA-Z0-9]+/g, '');
       filtered_planet.date = new Date(planet.date);
 
       // I'm adding the u- (uncertainty) properties because there are a few

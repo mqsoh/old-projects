@@ -24,6 +24,8 @@ html
             else
               th= label
 
+          th NASA
+
         tbody
           each planet in sorted_exoplanets
             tr
@@ -34,5 +36,8 @@ html
                     a(href="/exoplanet/#{planet.token}")= planet[field]
                 else
                   td= planet[field]
+
+              td(style="text-align:center")
+                a.nasa-link(href="http://kepler.nasa.gov/Mission/discoveries/#{planet.nasa_token}/")
 
     .footer Brought to you by the New York, NY team of <a href="http://spaceappschallenge.org">The International Space Apps Challenge</a>.
