@@ -1,57 +1,3 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		
-		<title>NYC Kepler</title>
-		<style>
-			.container {
-				background: #000;
-				width: 100%;
-				height: 100%;
-			}
-			
-			body {
-				background-color: #000000;
-				margin: 0px;
-				overflow: hidden;
-                font-family:Monospace;
-                font-size:13px;
-                text-align:center;
-                font-weight: bold;
-				text-align:center;
-			}
-
-			a {
-				color:#0078ff;
-			}
-			
-            #info {
-				color:#fff;
-                position: absolute;
-                top: 50%; width: 100%;
-                padding: 5px;
-				z-index:100;
-				
-            }
-			
-		</style>
-	</head>
-	
-	<body>
-
-		<div class="container">
-		</div>
-		<div id="info">
-		</div>
-		
-	</body>
-	
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-	<script src="js/Three.js"></script>
-	<script src="js/array.js"></script>
-
-	<script type="text/javascript">
 
 	var windowHalfX = window.innerWidth / 2;
 	var windowHalfY = window.innerHeight / 2;
@@ -175,6 +121,8 @@
 			
 			controller.objects.push(sph);
 			scene.add(sph);
+			
+			controller.setCurrent(sphere);
 		}
 		
 	
@@ -242,5 +190,3 @@
 		renderer.render( scene, camera );
 	}
 	
-	</script>
-</html>
