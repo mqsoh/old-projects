@@ -10,10 +10,6 @@
 				background: #000;
 				width: 100%;
 				height: 100%;
-				border-color: #fff;
-				border-width: 1px;
-				border-style:solid;
-				border-width:medium;
 			}
 			
 			body {
@@ -108,11 +104,11 @@
 		// create the sphere's material
 		var sphereMaterial = new THREE.MeshLambertMaterial(
 		{
-			color: 0xCC0000
+			color: 0xFFFF00
 		});
 
 		// set up the sphere vars
-		var radius = 20, segments = 16, rings = 16;
+		var radius = 5, segments = 10, rings = 10;
 
 		// create a new mesh with sphere geometry -
 		// we will cover the sphereMaterial next!
@@ -123,24 +119,44 @@
 		// add the sphere to the scene
 		scene.add(sphere);
 
-		var rpos = 150;
+
 		for(var i = 0; i < exo_array.length; i++) {
-			var col = (0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+
+		var p = exo_array[i];
+
+		var col;
 			//col = '#ffffff';
+		if (p.temp > 6150)
+            col = '0x19bce5'
+        else if (p.temp > 10000)
+            col = '0x01f9f9'
+        else if (p.temp > 5900)
+            col = '0x00fb44'
+        else if (p.temp > 5700)
+            col = '0x97fc02'
+        else if (p.temp > 5485)
+            col = '0xfc9701'
+        else if (p.temp > 4900)
+            col = '0xfb5c01'
+        else
+            col = '0xcf4626'
+
+			
 			sphereMaterial = new THREE.MeshLambertMaterial(
 			{
-				color: '0x'+col
+				color: col
 			});
 			
-			var p = exo_array[i];
-			//console.log(p.ra +  " " + p.dec + " " + p.dist);
+			console.log(col);
 			
 			x = (p.dist * Math.cos(p.dec)) * Math.cos(p.ra)
 			y = (p.dist * Math.cos(p.dec)) * Math.sin(p.ra)
 			z = p.dist * Math.sin(p.dec)
 			
+			radius = p.mass / 3
+			
 			var sph = new THREE.Mesh(
-				new THREE.SphereGeometry(radius * Math.random() + 0.2, segments, rings),
+				new THREE.SphereGeometry(radius * Math.random() + .5, segments, rings),
 					sphereMaterial);
 			sph.position.set(x, y, z)
 			scene.add(sph)
@@ -163,15 +179,15 @@
 
 		// set its position
 		pointLight2.position.x = -10;
-		pointLight2.position.y = 50;
-		pointLight2.position.z = -200;
+		pointLight2.position.y = -50;
+		pointLight2.position.z = -130;
 
 		// add to the scene
 		scene.add(pointLight);
 		scene.add(pointLight2);
 
 		// draw!
-		renderer.render(scene, camera);
+		//renderer.render(scene, camera);
 			
 		//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 		//document.addEventListener( 'touchstart', onDocumentTouchStart, false );
@@ -273,6 +289,44 @@
 		//renderer.render( scene, camera );
 
 	}
+	
+	
+	
+	/**
+	 * Converts an HSL color value to RGB. Conversion formula
+	 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+	 * Assumes h, s, and l are contained in the set [0, 1] and
+	 * returns r, g, and b in the set [0, 255].
+	 *
+	 * @param   Number  h       The hue
+	 * @param   Number  s       The saturation
+	 * @param   Number  l       The lightness
+	 * @return  Array           The RGB representation
+	 */
+	function hslToRgb(h, s, l){
+		var r, g, b;
+
+		if(s == 0){
+			r = g = b = l; // achromatic
+		}else{
+			function hue2rgb(p, q, t){
+				if(t < 0) t += 1;
+				if(t > 1) t -= 1;
+				if(t < 1/6) return p + (q - p) * 6 * t;
+				if(t < 1/2) return q;
+				if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+				return p;
+			}
+
+			var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+			var p = 2 * l - q;
+			r = hue2rgb(p, q, h + 1/3);
+			g = hue2rgb(p, q, h);
+			b = hue2rgb(p, q, h - 1/3);
+		}
+
+		return [r * 255, g * 255, b * 255];
+	}	
 	
 	
 	</script>

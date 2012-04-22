@@ -22,7 +22,9 @@ csv().fromPath(__dirname+'/exoplanets.csv',
 			name: name,
 			ra: ra,
 			dec: dec,
-			dist: dist
+			dist: dist,
+			mass: parseFloat(data.MSINI),
+			temp: parseFloat(data.TEFF)
 		}
 		
 		if( name && ra && dec && dist)
