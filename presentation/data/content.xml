@@ -1,0 +1,476 @@
+<zuiprezi>
+  <version>4</version>
+  <zui-table>
+    <settings>
+      <autoplay>
+        <delay>4000</delay>
+      </autoplay>
+      <bounds x="-16300.183423665876" y="-6508.659811144133" width="32600.334856945832" height="13017.290661394583"/>
+      <aspectratio>off</aspectratio>
+    </settings>
+    <object id="0" type="button" x="-4536.327478049839" y="-3303.5691793226965" r="0" s="4.626694922724118" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>860.9716943269335</w>
+        <h>558.5</h>
+      </size>
+    </object>
+    <object id="2" type="image" x="-4536.327478049839" y="-3303.5691793226965" r="0" s="2.30092077222918">
+      <source w="935" h="593">140525488.png<url>140525488.png</url>
+      </source>
+      <sourceUrl>http://kepler.nasa.gov/images/MilkyWay-Kepler-cRoberts-1-full.png</sourceUrl>
+    <resource><id>
+        140525488
+        </id><url>http://0103.static.prezi.com.s3.amazonaws.com/converted/2/7/b/97f3fac570435314316eba2b1fa0a5f16ff82.png</url></resource></object>
+    <object id="3" type="button" x="649.0621867863168" y="-1840.7286098282514" r="0" s="10.872771416571474" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.6057491289199</h>
+      </size>
+    </object>
+    <object id="6" type="image" x="649.0621867863168" y="-1599.0187393451565" r="0" s="2.1798417195552635">
+      <source w="1014" h="471">140527925.png<url>140527925.png</url>
+      </source>
+      <sourceUrl>Screen shot 2012-04-22 at 11.32.40 AM.png</sourceUrl>
+    <resource><id>
+        140527925
+        </id><url>http://0103.static.prezi.com.s3.amazonaws.com/media/6/f/1/f8a496f02c14b1c4f078310fc74eb2d115a8b.png</url></resource></object>
+    <object id="1" type="label" x="-4536.574171120345" y="-4267.941730550004" r="0" s="8.311761123009422" class="head">
+      <textfield>
+        <x>-141.05</x>
+        <y>-18.3</y>
+        <text><![CDATA[The Kepler Companion]]></text>
+        <annotations>r0-20 { align: left; }</annotations>
+      </textfield>
+    </object>
+    <object id="4" type="labelwithplaceholder" x="-364.84633299886457" y="-2189.108563998722" r="0" s="5.436385708285737" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="5" type="label" x="669.7844047089337" y="-2415.572802724463" r="0" s="10.637343767920223" class="body">
+      <textfield>
+        <x>-163.5</x>
+        <y>-48.5</y>
+        <text><![CDATA[Presented for the International Space Apps Challenge
+
+]]></text>
+        <w>327</w>
+        <h>97</h>
+        <annotations>r0-53 { align: center; }</annotations>
+      </textfield>
+    </object>
+    <object id="7" type="label" x="653.2066303708402" y="-656.7005486212062" r="0" s="10.637355060632801" class="strong">
+      <textfield>
+        <x>-80.65</x>
+        <y>-17</y>
+        <text><![CDATA[April 21-22, 2012]]></text>
+        <w>161.35</w>
+        <h>34</h>
+        <annotations>r0-17 { align: right; }</annotations>
+      </textfield>
+    </object>
+    <object id="8" type="button" x="-3992.7639664939584" y="-720.5447152685067" r="0" s="10.872770475512093" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.6057491289199</h>
+      </size>
+    </object>
+    <object id="9" type="labelwithplaceholder" x="-5009.484787282923" y="-1068.4806219120637" r="0" s="5.436385237756046" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="10" type="label" x="-3933.6069681862973" y="-899.2985141581277" r="0" s="10.637357883810946" class="body">
+      <textfield>
+        <x>-138.65</x>
+        <y>-48.5</y>
+        <text><![CDATA[The Kepler Companion provides an exoplanet list and data visualization]]></text>
+        <w>277.35</w>
+        <h>97</h>
+        <annotations>r0-70 { align: center; }</annotations>
+      </textfield>
+    </object>
+    <object id="11" type="button" x="-12478.61088303376" y="-5644.637079823284" r="0" s="2.8800757710694973" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>2653.846153846154</w>
+        <h>600</h>
+      </size>
+    </object>
+    <object id="12" type="button" x="-13370.110301233197" y="-5227.232404524859" r="0" s="1.710533288611123" class="circle">
+      <type>circle</type>
+      <size>
+        <w>800</w>
+        <h>800</h>
+      </size>
+    </object>
+    <object id="13" type="button" x="-3992.7639664939584" y="2248.8997744283856" r="0" s="10.870344424426552" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.59999999999997</h>
+      </size>
+    </object>
+    <object id="16" type="image" x="-4074.419372831889" y="2248.9491130424876" r="0" s="1.6279273313667575">
+      <source w="1338" h="1069">140534609.png<url>140534609.png</url>
+      </source>
+      <sourceUrl>kepler-20-e.png</sourceUrl>
+    <resource><id>
+        140534609
+        </id><url>http://0103.static.prezi.com.s3.amazonaws.com/media/2/d/0/77b633794c6478d90bab809ba4dc05cd9e82d.png</url></resource></object>
+    <object id="14" type="labelwithplaceholder" x="-5009.583464511126" y="1903.1347668052933" r="0" s="5.435172212213276" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="15" type="labelwithplaceholder" x="-4002.8783823847593" y="1252.3584468069216" r="0" s="10.634986414169532" class="head">
+      <placeholder text="Double-click to add text" x="-149.05" y="-18.3"/>
+    </object>
+    <object id="17" type="button" x="584.4286023133928" y="2249.4918377976032" r="0" s="10.867921196519156" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.59999999999997</h>
+      </size>
+    </object>
+    <object id="20" type="image" x="584.32992508519" y="2208.688803935689" r="0" s="1.6263463516058156">
+      <source w="1339" h="1078">140534951.png<url>140534951.png</url>
+      </source>
+      <sourceUrl>kepler-32.c.png</sourceUrl>
+    <resource><id>
+        140534951
+        </id><url>http://0103.static.prezi.com.s3.amazonaws.com/media/5/6/b/076d1ab60f5400221f468c75181c32830a94d.png</url></resource></object>
+    <object id="18" type="labelwithplaceholder" x="-431.10809173713704" y="1902.986750962989" r="0" s="5.433960598259578" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="19" type="labelwithplaceholder" x="841.9761679230594" y="1206.62155153486" r="0" s="10.632614003468738" class="head">
+      <placeholder text="Double-click to add text" x="-149.05" y="-18.3"/>
+    </object>
+    <object id="21" type="button" x="5161.621171120744" y="2249.4918377976032" r="0" s="10.86549890967114" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.6</h>
+      </size>
+    </object>
+    <object id="24" type="image" x="5097.777004473443" y="2167.73775423147" r="0" s="1.1339539692980065">
+      <source w="1920" h="1080">140535263.jpg<url>140535263.jpg</url>
+      </source>
+      <sourceUrl>screenshot.jpg</sourceUrl>
+    <resource><id>
+        140535263
+        </id><url>http://0103.static.prezi.com.s3.amazonaws.com/media/6/6/7/22baef8b80fc81f683b108a8e64972b93005e.jpg</url></resource></object>
+    <object id="22" type="labelwithplaceholder" x="5284.178288548792" y="2389.514824617572" r="0" s="5.43274945483557" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="23" type="labelwithplaceholder" x="5152.000141370958" y="1253.1972032466465" r="0" s="10.630243474886706" class="head">
+      <placeholder text="Double-click to add text" x="-149.05" y="-18.3"/>
+    </object>
+    <object id="25" type="button" x="9736.297470608919" y="2251.120012062952" r="0" s="10.863074740704365" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.59999999999997</h>
+      </size>
+    </object>
+    <object id="26" type="labelwithplaceholder" x="8721.254162699404" y="1904.7629410706418" r="0" s="5.431537370352182" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="27" type="labelwithplaceholder" x="9726.676440859133" y="1255.3187636530097" r="0" s="10.627872946304675" class="head">
+      <placeholder text="Double-click to add text" x="-149.05" y="-18.3"/>
+    </object>
+    <object id="28" type="label" x="9642.652781044331" y="2251.120012062952" r="0" s="7.591335936670291" class="body">
+      <textfield>
+        <x>-178.7</x>
+        <y>-17.5</y>
+        <text><![CDATA[http://www.keplercompanion.org/]]></text>
+        <annotations>r0-31 { align: left; }</annotations>
+      </textfield>
+    </object>
+    <object id="29" type="button" x="14311.023108711197" y="2251.120012062952" r="0" s="10.860651512796968" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.59999999999997</h>
+      </size>
+    </object>
+    <object id="30" type="labelwithplaceholder" x="13296.029139415783" y="1904.7629410706418" r="0" s="5.430325756398484" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="31" type="labelwithplaceholder" x="14301.402078961411" y="1255.3187636530097" r="0" s="10.625501476663263" class="head">
+      <placeholder text="Double-click to add text" x="-149.05" y="-18.3"/>
+    </object>
+    <object id="32" type="label" x="13937.381784120777" y="2251.514720975764" r="0" s="17.447365153089347" class="body">
+      <textfield>
+        <x>-82.7</x>
+        <y>-79.5</y>
+        <text><![CDATA[Team:
+Mason Du
+Mason Staugler
+Metapsyche
+Jeanne Brooks]]></text>
+        <w>165.45</w>
+        <h>159</h>
+        <annotations>r0-6 { align: right; }
+r6-15 { align: right; }
+r15-30 { align: right; }
+r30-41 { align: right; }
+r41-54 { align: right; }</annotations>
+      </textfield>
+    </object>
+    <object id="33" type="button" x="5163.792070141209" y="5218.097571054772" r="0" s="10.863074740704365" class="bracket">
+      <type>bracket</type>
+      <size>
+        <w>366.3</w>
+        <h>237.59999999999997</h>
+      </size>
+    </object>
+    <object id="34" type="labelwithplaceholder" x="4147.515296879157" y="4872.579256502186" r="0" s="5.431537370352182" class="strong">
+      <placeholder text="Double-click to add text" x="-105" y="-17"/>
+    </object>
+    <object id="35" type="label" x="5218.85" y="5050.05" r="0" s="10.627873420715332" class="body">
+      <textfield>
+        <x>-110.55</x>
+        <y>-79.5</y>
+        <text><![CDATA[NY Team:
+Mason Du
+Mason Staugler
+Roald Maravillas
+Jeanne Brooks]]></text>
+        <w>221.1</w>
+        <h>159</h>
+        <annotations>r0-9 { align: center; }
+r9-18 { align: center; }
+r18-33 { align: center; }
+r33-50 { align: center; }
+r50-63 { align: center; }</annotations>
+      </textfield>
+    </object>
+  </zui-table>
+  <path>
+    <o>0</o>
+    <o>33</o>
+    <o>3</o>
+    <o>8</o>
+    <o>13</o>
+    <o>17</o>
+    <o>21</o>
+    <o>25</o>
+  </path>
+  <style type="text/css"><![CDATA[
+@font-face
+{
+	src: url('LobsterTwo.swf');
+	fontFamily: strong;
+}
+
+@font-face
+{
+	src: url('OpenSans-XB.swf');
+	fontFamily: head;
+}
+
+@font-face
+{
+	src: url('PTSans-B.swf');
+	fontFamily: body;
+}
+
+ZLabel
+{
+	padding: 1.2;
+	lockTintColor: #000;
+	rollOverShadowColor: #ddd;
+	lockTintAlpha: 0.3;
+}
+
+ZLabel.head
+{
+	fontFamily: head;
+	color: #fff;
+}
+
+.line5
+{
+	color: #6fcc00;
+	gradStartColor: #6fcc00;
+	gradEndColor: #6fcc00;
+}
+
+.poly5
+{
+	borderColor: #6fcc00;
+	gradEndColor: #6fcc00;
+	gradStartColor: #6fcc00;
+	borderThickness: 0;
+}
+
+ZLabel.strong
+{
+	fontFamily: strong;
+	color: #efefef;
+}
+
+.line1
+{
+	gradEndColor: #7a8082;
+	color: #7a8082;
+	gradStartColor: #7a8082;
+	borderThickness: 0;
+}
+
+.poly1
+{
+	borderColor: #fff;
+	gradEndColor: #fff;
+	gradStartColor: #fff;
+	borderThickness: 0;
+}
+
+ZLabel.body
+{
+	fontFamily: body;
+	color: #efefef;
+}
+
+Background
+{
+	gradEnd: #000;
+	gradStart: #000;
+}
+
+Grid
+{
+	color: #555;
+}
+
+ZFrame.circle
+{
+	borderColor: #666;
+	gradEndColor: #000;
+	gradStartColor: #000;
+	borderThickness: 0;
+}
+
+.line4
+{
+	color: #000;
+	gradStartColor: #000;
+	gradEndColor: #000;
+}
+
+.poly4
+{
+	borderColor: #000;
+}
+
+ZFrame.bracket
+{
+	borderColor: #666;
+	gradEndColor: #000;
+	gradStartColor: #000;
+	borderThickness: 0;
+}
+
+.line2
+{
+	color: #000;
+	gradStartColor: #000;
+	gradEndColor: #000;
+}
+
+.poly2
+{
+	borderColor: #000;
+}
+
+ZFrame.roundrect
+{
+	borderColor: #666;
+	gradEndColor: #000;
+	gradStartColor: #000;
+	borderThickness: 0;
+}
+
+ZPoly
+{
+	radius: 0;
+	rollOverShadowColor: #ddd;
+	thickness: 100;
+	lockTintAlpha: 0.4;
+	gradStartAlpha: 0.7;
+	lockTintColor: #000;
+	borderAlpha: 1;
+}
+
+ZCircle
+{
+	radius: 0;
+	rollOverShadowColor: #ddd;
+	lockTintColor: #000;
+	thickness: 100;
+	borderAlpha: 1;
+	lockTintAlpha: 0.4;
+}
+
+ZArrow
+{
+	borderColor: #4c4c4c;
+	gradEndColor: #000;
+	gradStartColor: #000;
+	borderThickness: 0;
+}
+
+.line3
+{
+	color: #000;
+	gradStartColor: #000;
+	gradEndColor: #000;
+}
+
+.poly3
+{
+	borderColor: #000;
+}
+
+ZLine
+{
+	color: #000;
+}
+
+ZCurveLine
+{
+	color: #000;
+}
+
+ZMarker
+{
+	rollOverShadowColor: #ddd;
+	lockTintColor: #000;
+	color: #00e1ff;
+	alpha: 0.3;
+	lockTintAlpha: 0.4;
+}
+
+ZVideo
+{
+	padding: 1.2;
+	lockTintColor: #000;
+	rollOverShadowColor: #ddd;
+	lockTintAlpha: 0.4;
+}
+
+ZYoutube
+{
+	lockTintColor: #000;
+	rollOverShadowColor: #ddd;
+	lockTintAlpha: 0.4;
+}
+
+ZLoadedImage
+{
+	lockTintColor: #000;
+	rollOverShadowColor: #ddd;
+	lockTintAlpha: 0.4;
+}
+
+]]></style>
+  <hash>078686374ab73d1ec7a5031f43c8618a</hash>
+<sync><oid>mzzkphl6jkwk</oid><hash>078686374ab73d1ec7a5031f43c8618a</hash></sync><config>i5a4l1hC/EY2yQBM5UbWahTlcP/Es5sCM8ZBV4ju9y4JhG/b7BJqW5LjHDszf487N5dtrUAZkkObplSxyq6Uo5nQQsEzLP0MdHBTuz1REXZeJySsDeEsiKs4kcbOGkuyvJbvxqDPTskTsI2e69jkbzdQvpfnjNRzEPxiviBpRro63UNE6Ai9D79J85eUfLiACQjFS6GC52tV7MoOpnS6Hn/Rjq6InPzYaTFiqYYY3oGm150i4xL7rnpeRQauPfP1UEmwmVpfEMzXgOPEFyawT8vwlpBiwRf0ExUP3vu63kbJRC34APrBZc3QwjxRJ4HxGe6v6fpBRgcKYjpVB7JrOQ==</config></zuiprezi>
