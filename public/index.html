@@ -1,0 +1,279 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		
+		
+		<title>Sample Three.js</title>
+		<style>
+			#container {
+				background: #000;
+				width: 100%;
+				height: 100%;
+				border-color: #fff;
+				border-width: 1px;
+				border-style:solid;
+				border-width:medium;
+			}
+			
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+                font-family:Monospace;
+                font-size:13px;
+                text-align:center;
+                font-weight: bold;
+				text-align:center;
+			}
+
+			a {
+				color:#0078ff;
+			}
+			
+            #info {
+				color:#fff;
+                position: absolute;
+                top: 0px; width: 100%;
+                padding: 5px;
+				z-index:100;
+				
+            }
+			
+		</style>
+	</head>
+	<body>
+
+		<div id="container">
+
+
+		</div>
+
+	</body>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+	<script src="js/Three.js"></script>
+	<script src="js/array.js"></script>
+
+	<script type="text/javascript">
+
+	var windowHalfX = window.innerWidth / 2;
+	var windowHalfY = window.innerHeight / 2;
+	var mouseX = 0, mouseY = 0;
+
+	var renderer = new THREE.WebGLRenderer();
+	
+	// set the scene size
+	var WIDTH = windowHalfX*2,
+	    HEIGHT = windowHalfY*2;
+
+	// set some camera attributes
+	var VIEW_ANGLE = 45,
+	    ASPECT = WIDTH / HEIGHT,
+	    NEAR = 0.1,
+	    FAR = 10000;
+
+	// get the DOM element to attach to
+	// - assume we've got jQuery to hand
+	var $container = $('#container');
+
+	// create a WebGL renderer, camera
+	// and a scene
+	
+	
+	//var camera = new THREE.Camera( VIEW_ANGLE, window.innerWidth / window.innerHeight, 1, 3000 );
+	var camera = new THREE.PerspectiveCamera(  VIEW_ANGLE,
+	                                ASPECT,
+	                                NEAR,
+	                                FAR  );
+	var scene = new THREE.Scene();
+	//scene.fog = new THREE.FogExp2( 0x000000, 0.001 );
+
+	// the camera starts at 0,0,0 so pull it back
+	camera.position.z = 300;
+
+	// start the renderer
+	renderer.setSize(WIDTH, HEIGHT);
+	
+	
+	
+	init();
+	setInterval( loop, 1000 / 60 );
+	
+	
+	function init() {
+
+		// attach the render-supplied DOM element
+		$container.append(renderer.domElement);
+
+		// create the sphere's material
+		var sphereMaterial = new THREE.MeshLambertMaterial(
+		{
+			color: 0xCC0000
+		});
+
+		// set up the sphere vars
+		var radius = 20, segments = 16, rings = 16;
+
+		// create a new mesh with sphere geometry -
+		// we will cover the sphereMaterial next!
+		var sphere = new THREE.Mesh(
+		   new THREE.SphereGeometry(radius, segments, rings),
+		   sphereMaterial);
+
+		// add the sphere to the scene
+		scene.add(sphere);
+
+		var rpos = 150;
+		for(var i = 0; i < exo_array.length; i++) {
+			var col = (0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+			//col = '#ffffff';
+			sphereMaterial = new THREE.MeshLambertMaterial(
+			{
+				color: '0x'+col
+			});
+			
+			var p = exo_array[i];
+			//console.log(p.ra +  " " + p.dec + " " + p.dist);
+			
+			x = (p.dist * Math.cos(p.dec)) * Math.cos(p.ra)
+			y = (p.dist * Math.cos(p.dec)) * Math.sin(p.ra)
+			z = p.dist * Math.sin(p.dec)
+			
+			var sph = new THREE.Mesh(
+				new THREE.SphereGeometry(radius * Math.random() + 0.2, segments, rings),
+					sphereMaterial);
+			sph.position.set(x, y, z)
+			scene.add(sph)
+			
+		}
+		
+		
+		// and the camera
+		scene.add(camera);
+
+		// create a point light
+		var pointLight = new THREE.PointLight( 0xFFFFFF );
+
+		// set its position
+		pointLight.position.x = 10;
+		pointLight.position.y = 50;
+		pointLight.position.z = 130;
+
+		var pointLight2 = new THREE.PointLight( 0xFFFFFF );
+
+		// set its position
+		pointLight2.position.x = -10;
+		pointLight2.position.y = 50;
+		pointLight2.position.z = -200;
+
+		// add to the scene
+		scene.add(pointLight);
+		scene.add(pointLight2);
+
+		// draw!
+		renderer.render(scene, camera);
+			
+		//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		//document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+		//document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+	}
+	
+	
+	function onDocumentMouseMove( event ) {
+		mouseX = event.clientX - windowHalfX;
+		mouseY = event.clientY - windowHalfY;
+	}
+
+	function onDocumentTouchStart( event ) {
+		if ( event.touches.length == 1 ) {
+			event.preventDefault();
+			mouseX = event.touches[ 0 ].pageX - windowHalfX;
+			mouseY = event.touches[ 0 ].pageY - windowHalfY;
+		}
+	}
+
+	function onDocumentTouchMove( event ) {
+		if ( event.touches.length == 1 ) {
+			event.preventDefault();
+			mouseX = event.touches[ 0 ].pageX - windowHalfX;
+			mouseY = event.touches[ 0 ].pageY - windowHalfY;
+		}
+	}	
+
+
+	
+	var theta = 0;
+
+	function loop() {
+		var time = new Date().getTime() * 0.00005;
+		
+		//camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+		//camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+
+		//theta = ( mouseX - camera.position.x ) * 0.5
+		//phi = ( - mouseY - camera.position.y ) * 0.5;
+
+		var phi = Math.min( 180, Math.max( 0, phi ) );
+
+		radius = 400;
+		
+		
+		theta += 2;
+
+		camera.position.x = radius * Math.sin( theta * Math.PI / 360 );
+		camera.position.y = radius * Math.sin( theta * Math.PI / 360 );
+		camera.position.z = radius * Math.cos( theta * Math.PI / 360 );
+		camera.lookAt( scene.position );
+
+		renderer.render( scene, camera );
+
+			
+
+		
+		
+/*		
+		camera.position.x = radious * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+		camera.position.y = radious * Math.sin( phi * Math.PI / 360 );
+		camera.position.z = radious * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+		camera.updateMatrix();		
+
+		controls = new THREE.TrackballControls( camera );
+        controls.target.set( 0, 0, 0 )
+		
+		controls.rotateSpeed = 1.0;
+		controls.zoomSpeed = 1.2;
+		controls.panSpeed = 0.8;
+
+		controls.noZoom = false;
+		controls.noPan = false;
+
+		controls.staticMoving = false;
+		controls.dynamicDampingFactor = 0.15;
+
+		controls.keys = [ 65, 83, 68 ];
+		
+		controls.update();
+/*				
+		for( i = 0; i < scene.objects.length; i++ ) {
+		
+			scene.objects[i].rotation.y = time * ( i < 4 ? i+1 : - (i+1) );
+			
+		}
+
+		for( i = 0; i < materials.length; i++ ) {
+			
+			color = parameters[i][0];
+			
+			h = ( 360 * ( color[0] + time ) % 360 ) / 360;
+			materials[i].color.setHSV( h, color[1], color[2] );
+			
+		}
+*/				
+		//renderer.render( scene, camera );
+		//renderer.render( scene, camera );
+
+	}
+	
+	
+	</script>
+</html>

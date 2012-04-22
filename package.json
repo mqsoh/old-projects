@@ -15,7 +15,8 @@
     "jsdom": "~0.2.14",
     "jquery": "~1.6.3",
     "request": "~2.9.202",
-    "memory-cache": "0.0.1"
+    "memory-cache": "0.0.1",
+    "csv": "0.0.13"
   },
   "domains": [],
   "subdomain": "kepler",
