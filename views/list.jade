@@ -6,22 +6,33 @@ html
 
   body
     .nav
-      a.home(href="/") The Kepler Kompanion
+      a.home(href="/") The Kepler Companion
       a(href="/exoplanet-visualization") Exoplanet Visualization
       a.current(href="/exoplanet-list") Exoplanet List
 
     .page.planet-table
-      p This is the complete list of exoplanets. There's a lot; these are the confirmed exoplanets from <a target="_blank" href="http://en.wikipedia.org/wiki/File:LombergA1024.jpg">a narrow region of space</a>.
+      p These are the confirmed exoplanets found by Keppler. They were founnd by looking at <a target="_blank" href="http://en.wikipedia.org/wiki/File:LombergA1024.jpg">a narrow region of space</a>. The imagination is excited by all the planets of which we remain ignorant!
+
+      p Click on a planet to compare its size to Earth.
 
       table
         thead
           - var labels = ['Name', 'Mass relative to Jupiter', 'Mass relative to Earth', 'Radius relative to Jupiter', 'Radius relative to Earth', 'Publication Date']
           each label in labels
-            th= label
+            if (label == 'Name')
+              th.name= label
+            else
+              th= label
 
         tbody
           each planet in sorted_exoplanets
             tr
               - var field_order = ['name', 'mass_jupiter', 'mass_earth', 'radius_jupiter', 'radius_earth', 'date']
               each field in field_order
-                td= planet[field]
+                if (field == 'name')
+                  td
+                    a(href="/exoplanet/#{planet.token}")= planet[field]
+                else
+                  td= planet[field]
+
+    .footer Brought to you by the New York, NY team of <a href="http://spaceappschallenge.org">The International Space Apps Challenge</a>.

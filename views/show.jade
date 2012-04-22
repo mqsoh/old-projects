@@ -1,0 +1,33 @@
+!!! 5
+html
+  head
+    title Not used, fool.
+    meta(charset="utf-8")
+
+  body
+    script(type='text/javascript', src='/js/raphael-min.js')
+    .nav
+      a.home(href="/") The Kepler Companion
+      a(href="/exoplanet-visualization") Exoplanet Visualization
+      a(href="/exoplanet-list") Exoplanet List
+
+    .page
+      h1 #{planet.name}
+
+      h2 Relative radius.
+      if (!planet.radius_earth || planet.radius_earth == '--')
+        p Data unavailable.
+      else
+        p This is a comparison of the size of #{planet.name} with Earth.
+        #radius_paper.paper
+
+      h2 Relative mass.
+      if (!planet.mass_earth || planet.mass_earth == '--')
+        p Data unavailable.
+      else
+        p Assuming equal density, this is a comparison of the mass of #{planet.name} and Earth. It's not likely that the densities are at all similar, however, you may enjoy this chart and exclaim -- my! #{planet.name} is quite massive! or not so massive, as the case may be.
+        #mass_paper.paper
+
+      script(type="text/javascript") draw_planet('#{planet.mass_earth}', '#{planet.radius_earth}');
+
+    .footer Brought to you by the New York, NY team of <a href="http://spaceappschallenge.org">The International Space Apps Challenge</a>.

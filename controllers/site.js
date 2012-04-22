@@ -14,6 +14,41 @@ exports.visualization = function (req, res) {
 };
 
 exports.list = function (req, res) {
+  render_planets(req, res, function (req, res, planets) {
+    res.render('list', {
+      title: 'All confirmed exoplanets.',
+      sorted_exoplanets: planets
+    });
+  });
+};
+
+exports.show = function (req, res) {
+  render_planets(req, res, function (req, res, planets) {
+    var name = req.params.name;
+    var my_planet = null;
+
+    for (var ii in planets) {
+      var planet = planets[ii];
+      if (planet.token == name) {
+        my_planet = planet;
+      }
+    }
+
+    if (my_planet == null) {
+      resp.send('Planet not found.');
+      return;
+    }
+
+    res.render('show', {
+      title: my_planet.name,
+      planet: my_planet
+    });
+  });
+};
+
+
+
+function render_planets(req, res, handler) {
   // The following crap is copied from the API module because there's something
   // I must not understand about closures and I don't know how to make Node.JS
   // code modular.
@@ -24,10 +59,7 @@ exports.list = function (req, res) {
 
   if (stored) {
     // This is different.
-    res.render('list', {
-      title: 'All confirmed exoplanets.',
-      sorted_exoplanets: sort_teh_planets(stored)
-    });
+    handler(req, res, sort_teh_planets(stored));
     return;
   }
 
@@ -68,20 +100,16 @@ exports.list = function (req, res) {
 
     // This is also different, but also the same in a way. Different from the
     // API module, but the same as above. :(
-    res.send(stored);
-    res.render('list', {
-      title: 'All confirmed exoplanets.',
-      sorted_exoplanets: sort_teh_planets(planets)
-    });
+    handler(req, res, sort_teh_planets(planets));
   });
-};
+}
 
 function sort_teh_planets(planets) {
   var mass_property = 'msini';
-  var earth_mass_multiple = 0.00314;
+  var earth_mass_multiple = 317.82;
 
   var radius_property = 'r';
-  var earth_radius_multiple = 0.089;
+  var earth_radius_multiple = 11.21;
 
   var sorted = [];
 
@@ -93,6 +121,7 @@ function sort_teh_planets(planets) {
       var filtered_planet = {};
 
       filtered_planet.name = planet.name;
+      filtered_planet.token = planet.name.toLowerCase().replace(' ', '-');
       filtered_planet.date = new Date(planet.date);
 
       // I'm adding the u- (uncertainty) properties because there are a few
