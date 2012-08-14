@@ -1,0 +1,1333 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.8.1: http://docutils.sourceforge.net/" />
+<title>A layperson's guide to Kepler data.</title>
+<link href="http://fonts.googleapis.com/css?family=Sirin+Stencil" rel="stylesheet" type="text/css" />
+<style type="text/css">
+
+body{
+    background-color: #ccc;
+    color: #000;}
+
+.document {
+    margin: 0 auto;
+    max-width: 950px;
+    font-size: 12pt;}
+
+h1 {
+    font-family: 'Sirin Stencil', cursive;
+    color: #2e3436;
+    font-size: 150%;}
+
+h1.title {
+    font-size: 200%;}
+
+ol li {
+    margin-bottom: 10px;}
+
+ol ul li {
+    margin-bottom: 0;}
+
+pre.literal-block {
+    background-color: #ccc;
+    margin: 0;
+    padding: 10px;}
+
+dt {
+    margin-top: 20px;
+    font-size: 110%;}
+
+dd {
+    margin-left: 20px;}
+
+a {
+    text-decoration: none;
+    color: #204a87;}
+
+a:hover {
+    text-decoration: underline;}
+
+</style>
+</head>
+<body>
+<div class="document" id="a-layperson-s-guide-to-kepler-data">
+<a href="kepler-data-fields.rst">
+    View the source document (reST)
+</a>, or
+<a href="kepler-data-fields.pdf">
+    download a PDF version
+</a>.
+<h1 class="title">A layperson's guide to Kepler data.</h1>
+
+<div class="section" id="contents">
+<span id="back-to-the-top"></span><h1>Contents.</h1>
+<ul class="simple">
+<li><a class="reference internal" href="#interesting-columns-in-the-exoplanets-table">Interesting columns in the exoplanets table</a>.</li>
+<li><a class="reference internal" href="#interesting-columns-in-the-kepler-candidates-table">Interesting columns in the Kepler candidates table</a>.</li>
+<li><a class="reference internal" href="#exoplanets-table">Exoplanets table</a>.</li>
+<li><a class="reference internal" href="#kepler-candidates-table">Kepler candidates table</a>.</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h1>Introduction.</h1>
+<p>The following two tables are defined for an <a class="reference external" href="http://exoplanetarchive.ipac.caltech.edu/docs/program_interfaces.html">API</a> provided at the <a class="reference external" href="http://exoplanetarchive.ipac.caltech.edu/">NASA
+Exoplanet Archive</a>. I am a layperson and a web developer. I recently
+participated in the <a class="reference external" href="http://spaceappschallenge.org/">International Space Apps Challenge</a> and wrote <a class="reference external" href="http://www.keplercompanion.org/">a very
+basic Kepler application</a>. I'd like to write a better one, but I didn't
+understand the data available to me. This is a list of the columns provided in
+both tables with further explanations and links for more information (the
+initial descriptions are provided by the <a class="reference external" href="http://exoplanetarchive.ipac.caltech.edu/docs/program_interfaces.html">API</a> documentation). If a column has
+no explanation, then I either considered it obvious or not related to the
+information I need (I assume!).</p>
+<p>What I would like to know about new planets is:</p>
+<ol class="arabic simple">
+<li>The position of, and distance to, the host star.</li>
+<li>The planet's distance from its host star.</li>
+<li>The mass of the planet compared to ours.</li>
+<li>The size of the planet compared to ours.</li>
+<li>The composition of the planet.</li>
+<li>Whether or not the planet's orbit is in the &quot;<a class="reference external" href="http://en.wikipedia.org/wiki/Habitable_zone">habitable zone</a>&quot; of the host
+star. There's some marked criticism on the validity of the metric, though.</li>
+</ol>
+</div>
+<div class="section" id="id1">
+<span id="interesting-columns-in-the-exoplanets-table"></span><h1>Interesting columns in the exoplanets table.</h1>
+<p><a class="reference internal" href="#back-to-the-top">Back to the top</a>.</p>
+<ol class="arabic simple">
+<li>The position of, and distance to, the host star. My teammate in the space
+apps challenge used the right ascension, declination and distance to find the
+relative positions of the stars, but I'm intrigued by the <a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a>
+coordinate system (st_glon and st_glat).<ul>
+<li>st_dist</li>
+<li>ra</li>
+<li>dec</li>
+<li>st_glon</li>
+<li>st_glat</li>
+</ul>
+</li>
+<li>The planet's distance from its host star. We'll use the semi-major axis.<ul>
+<li>pl_orbsmax</li>
+<li>pl_orbsmaxerr1</li>
+<li>pl_orbsmaxerr2</li>
+</ul>
+</li>
+<li>The mass of the planet compared to ours.<ul>
+<li>pl_masse</li>
+</ul>
+</li>
+<li>The size of the planet compared to ours.<ul>
+<li>pl_rade</li>
+</ul>
+</li>
+<li>The composition of the planet. I know that there are some exoplanets for
+which this is known, but I don't think this can be determined with the
+provided data.<ul>
+<li>?</li>
+</ul>
+</li>
+<li>Habitable zone. I think the stars temperature is determined by the spectral
+characteristics, so st_ssp (spectral type) is probably the source of the
+data. However, the table specifically has st_teff, the effective
+temperature. Is it derived from the spectral type, though?<ul>
+<li>st_ssp</li>
+<li>st_ssperr</li>
+<li>st_teff</li>
+<li>st_tefferr</li>
+<li>pl_orbsmax (where the planet is)</li>
+<li>pl_orbsmaxerr1</li>
+<li>pl_orbsmaxerr2</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="id2">
+<span id="interesting-columns-in-the-kepler-candidates-table"></span><h1>Interesting columns in the Kepler candidates table.</h1>
+<p><a class="reference internal" href="#back-to-the-top">Back to the top</a>.</p>
+<ol class="arabic simple">
+<li>The position of, and distance to, the host star. I don't see an equivalent
+to st_dist from the exoplanets table. There are normd* and classprob* fields
+that, if I understand the <a class="reference external" href="http://en.wikipedia.org/wiki/Mahalanobis_distance">Mahalonobis distance</a> wiki properly might be the
+sort of raw data that gets digested to the simple st_dist. Maybe the
+<a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a> coordinates will be easier in this case.<ul>
+<li>ra</li>
+<li>dec</li>
+<li>glon</li>
+<li>glat</li>
+</ul>
+</li>
+<li>The planet's distance from its host star.<ul>
+<li>sma (planet-star distance)</li>
+<li>smaunc (uncertainty)</li>
+</ul>
+</li>
+<li>The mass of the planet compared to ours. I was surprised to find out that
+<a class="reference external" href="http://www.scientificamerican.com/article.cfm?id=kepler-planets-700">Kepler can't determine the mass of the planet</a> at all. It's the follow up
+observations that provide that data, so we'll only be able to get this from
+confirmed exoplanets in the other table.<ul>
+<li>?</li>
+</ul>
+</li>
+<li>The size of the planet compared to ours.<ul>
+<li>prad</li>
+<li>pradunc</li>
+</ul>
+</li>
+<li>The composition of the planet. The eqt (equilibrium temperature) of the
+(surface of the) planet might suggest something.<ul>
+<li>?</li>
+</ul>
+</li>
+<li>Habitable zone.<ul>
+<li>sma (planet-star distance)</li>
+<li>smaunc</li>
+<li>smasrad (planet-star distance to stellar radius) The stellar radius might
+suggest stellar class and thereby temperature, so this may have been meant
+for a habitability evaluation.</li>
+<li>smasradun</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="id3">
+<span id="exoplanets-table"></span><h1>Exoplanets table.</h1>
+<p><a class="reference internal" href="#back-to-the-top">Back to the top</a></p>
+<p>This is a table of confirmed exoplanets. This isn't limited to Kepler
+discoveries, but since all Kepler discoveries start with 'Kepler', it can be
+filtered if you (I) want. The following fields are available.</p>
+<dl class="docutils">
+<dt>pl_hostname</dt>
+<dd>Planet host star name.</dd>
+<dt>pl_letter</dt>
+<dd>Planet letter (b, c, d, ...).</dd>
+<dt>hd_name</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Henry_Draper_catalogue">HD</a> name</p>
+<pre class="last literal-block">
+A cataloguing system.
+</pre>
+</dd>
+<dt>hip_name</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Hipparcos_Catalogue">HIP</a> name</p>
+<pre class="last literal-block">
+A cataloguing system.
+</pre>
+</dd>
+<dt>ra</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Right_ascension">RA</a> (deg)</p>
+<pre class="last literal-block">
+Right ascension. I may use the right ascension and declination to
+calculate the star's location in relation to us. However, the Galactic
+Coordinates look promising, too.
+</pre>
+</dd>
+<dt>dec</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Declination">Dec</a> (deg)</p>
+<pre class="last literal-block">
+Declination.
+</pre>
+</dd>
+<dt>st_dist</dt>
+<dd><p class="first">Distance (parsecs)</p>
+<ul class="last simple">
+<li>st_disterr</li>
+<li>st_distlim</li>
+<li>st_plxblend</li>
+</ul>
+</dd>
+<dt>st_vj</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/UBV_photometric_system">V (Johnson) magnitude</a></p>
+<pre class="literal-block">
+Classification of stars based on color.
+</pre>
+<ul class="last simple">
+<li>st_vjerr</li>
+<li>st_vjlim</li>
+<li>st_vjblend</li>
+</ul>
+</dd>
+<dt>st_teff</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Star#Temperature">Effective Temperature</a> (K)</p>
+<pre class="literal-block">
+This is based on the class (color) of the star, so I may not use this.
+</pre>
+<ul class="last simple">
+<li>st_tefferr</li>
+<li>st_tefflim</li>
+<li>st_teffblend</li>
+</ul>
+</dd>
+<dt>st_rad</dt>
+<dd><p class="first">Stellar Radius (solar mass)</p>
+<pre class="literal-block">
+Radius of the star as a multiple of the sun's radius.
+</pre>
+<ul class="last simple">
+<li>st_raderr</li>
+<li>st_radlim</li>
+<li>st_radblend</li>
+</ul>
+</dd>
+<dt>st_mass</dt>
+<dd><p class="first">Stellar Mass (solar radius)</p>
+<pre class="literal-block">
+Mass of the star as a multiple of the sun's mass.
+</pre>
+<ul class="last simple">
+<li>st_masserr</li>
+<li>st_masslim</li>
+<li>st_massblend</li>
+</ul>
+</dd>
+<dt>pl_orbper</dt>
+<dd><p class="first">Period (days)</p>
+<ul class="last simple">
+<li>(+) pl_orbpererr1</li>
+<li>pl_orbperlim</li>
+</ul>
+</dd>
+<dt>pl_orbsmax</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Semi-major_axis">Semi-Major Axis</a> (AU)</p>
+<pre class="literal-block">
+In an ellipse, the distance from the center, through a focus, to the
+edge.
+</pre>
+<ul class="last simple">
+<li>(+) pl_orbsmaxerr1</li>
+<li>(-) pl_orbsmaxerr2</li>
+<li>pl_orbsmaxlim</li>
+</ul>
+</dd>
+<dt>pl_orbincl</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Inclination">Inclination</a> (deg)</p>
+<pre class="literal-block">
+There's an orbital plane for reference. The planet's orbital
+inclination is the angle between it's orbital plane and the reference
+plane.
+</pre>
+<ul class="last simple">
+<li>(+) pl_orbinclerr1</li>
+<li>(-) pl_orbinclerr2</li>
+<li>pl_orbincllim</li>
+</ul>
+</dd>
+<dt>pl_orbtper</dt>
+<dd><p class="first">Time of <a class="reference external" href="http://en.wikipedia.org/wiki/Periastron">Periastron</a> (Julian Days)</p>
+<pre class="literal-block">
+The closest approach of the planet to its star. I'm not sure what this
+means in relation to days. Probably there's a day-zero point in
+describing an orbit. Anyway, the 'longitude of periastron' is below.
+</pre>
+<ul class="last simple">
+<li>(+) pl_orbtpererr1</li>
+<li>(-) pl_orbtpererr2</li>
+<li>pl_orbtperlim</li>
+</ul>
+</dd>
+<dt>pl_orbeccen</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Eccentricity_%28orbit%29">Eccentricity</a></p>
+<pre class="literal-block">
+Amount by which the orbit deviates from a perfect circle.
+</pre>
+<ul class="last simple">
+<li>(+) pl_orbeccenrerr1</li>
+<li>(-) pl_orbeccenerr2</li>
+<li>pl_orbeccenlim</li>
+</ul>
+</dd>
+<dt>pl_massj</dt>
+<dd><p class="first">Planet Mass (Jupiter)</p>
+<ul class="last simple">
+<li>(+) pl_massjerr1</li>
+<li>(-) pl_massjnerr2</li>
+<li>pl_massjlim</li>
+</ul>
+</dd>
+<dt>pl_radj</dt>
+<dd><p class="first">Planet Radius (Jupiter)</p>
+<ul class="last simple">
+<li>(+) pl_radjerr1</li>
+<li>(-) pl_radjnerr2</li>
+<li>pl_radjlim</li>
+</ul>
+</dd>
+<dt>pl_method</dt>
+<dd>discoveryMethod</dd>
+<dt>st_glon</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a> Longitude (deg)</p>
+<pre class="last literal-block">
+Probably the easiest way to plot the star's position.
+</pre>
+</dd>
+<dt>st_glat</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a> Latitude (deg)</dd>
+<dt>st_elon</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Ecliptic_coordinate_system">Ecliptic</a> Longitude (deg)</p>
+<pre class="last literal-block">
+Probably a more confusing way to plot the star's position since it
+relies on the path of the sun in the celestial sphere.
+</pre>
+</dd>
+<dt>st_elat</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Ecliptic_coordinate_system">Ecliptic</a> Latitude (deg)</dd>
+<dt>st_plx</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Stellar_parallax">Parallax</a> (mas)</p>
+<pre class="literal-block">
+This is a method of measuring distance. Probably st_dist is a result of
+this measurement.
+</pre>
+<ul class="last simple">
+<li>(+) st_plxerr1</li>
+<li>(-) st_plxerr2</li>
+<li>st_plxlim</li>
+<li>st_plxblend</li>
+</ul>
+</dd>
+<dt>st_pmra</dt>
+<dd><p class="first">RA <a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (mas/yr)</p>
+<pre class="literal-block">
+I think that this is used to calculate the position of the star and
+that the galactic coordinates are probably a result of the calculation.
+</pre>
+<ul class="last simple">
+<li>(+) st_pmraerr1</li>
+<li>(-) st_pmraerr2</li>
+<li>st_pmralim</li>
+<li>st_pmrablend</li>
+</ul>
+</dd>
+<dt>st_pmdec</dt>
+<dd><p class="first">Dec <a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (mas/yr)</p>
+<ul class="last simple">
+<li>st_pmdecerr</li>
+<li>st_pmdeclim</li>
+<li>st_pmdecblend</li>
+</ul>
+</dd>
+<dt>st_pm</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (mas/yr)</p>
+<ul class="last simple">
+<li>st_pmerr</li>
+<li>st_pmerrlim</li>
+<li>st_pmerrblend</li>
+</ul>
+</dd>
+<dt>st_radv</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Radial_velocity">Radial Velocity</a></p>
+<pre class="literal-block">
+I think this is the wobble of the star, but the value is a property of
+the orbiting body...) (km/sec)
+</pre>
+<ul class="last simple">
+<li>st_radverr</li>
+<li>st_radvlimn</li>
+<li>st_radvblend</li>
+</ul>
+</dd>
+<dt>st_ssp</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Spectral_type#Spectral_types">Spectral Type</a></p>
+<pre class="literal-block">
+The color of the star! Sweet!
+</pre>
+<ul class="last simple">
+<li>st_ssperr</li>
+<li>st_ssplim</li>
+<li>st_sspblend</li>
+</ul>
+</dd>
+<dt>st_lum</dt>
+<dd><p class="first">Luminosity (log solar luminosity)</p>
+<pre class="literal-block">
+Maybe 'brightness' of the star... see Spectral Type.
+</pre>
+<ul class="last simple">
+<li>st_lumerr</li>
+<li>st_lumlim</li>
+<li>st_lumblend</li>
+</ul>
+</dd>
+<dt>st_metfe</dt>
+<dd><p class="first">[Fe/H] (dex)</p>
+<pre class="literal-block">
+The metallicity of the star. I just saw on the Science Channel that any
+iron in a star causes the sun to go nova within minutes, so... :*
+</pre>
+<ul class="last simple">
+<li>st_metfeerr</li>
+<li>st_metfelim</li>
+<li>st_metfeblend</li>
+</ul>
+</dd>
+<dt>st_vsini</dt>
+<dd><p class="first"><a class="reference external" href="http://books.google.com/books?id=jAe4P3GIZRoC&amp;pg=PT117&amp;lpg=PT117&amp;dq=stellar+v+sin&amp;source=bl&amp;ots=y7LR1tuIn6&amp;sig=hlhPvulvidjuBydFFHowme1f-lc&amp;hl=en&amp;sa=X&amp;ei=6b2ZT4OWNaLH6QHjq6TlBg&amp;ved=0CGkQ6AEwCQ#v=onepage&amp;q=v%20sin&amp;f=false">V sin</a> (I) (km/sec)</p>
+<pre class="literal-block">
+Something to do with the rotation of the star and line-of-sight.
+</pre>
+<ul class="last simple">
+<li>st_vsinierr</li>
+<li>st_vsinilim</li>
+<li>st_vsiniblend</li>
+</ul>
+</dd>
+<dt>st_acts</dt>
+<dd><p class="first">Stellar Activity Index (S-Index)</p>
+<ul class="last simple">
+<li>st_actserr</li>
+<li>st_actslim</li>
+<li>st_actsblend</li>
+</ul>
+</dd>
+<dt>st_actr</dt>
+<dd><p class="first">Stellar Activity Log (RHK)</p>
+<ul class="last simple">
+<li>st_actrerr</li>
+<li>st_actrlim</li>
+<li>st_actrblend</li>
+</ul>
+</dd>
+<dt>st_actlx</dt>
+<dd><p class="first">Stellar Activit (Lx)</p>
+<ul class="last simple">
+<li>st_actlxerr</li>
+<li>st_actlxlim</li>
+<li>st_actlxblend</li>
+</ul>
+</dd>
+<dt>st_nts</dt>
+<dd><p class="first">Number of Light Curves</p>
+<pre class="last literal-block">
+I think the next seven fields are related to the number of measurements
+taken.
+</pre>
+</dd>
+<dt>st_nplc</dt>
+<dd>Number non-HIP LCs</dd>
+<dt>st_nglc</dt>
+<dd>Number HIP Light Curves</dd>
+<dt>st_nrvc</dt>
+<dd>Number Radial Velocity Curves</dd>
+<dt>st_naxa</dt>
+<dd>Number Amateur Light Curves</dd>
+<dt>st_nimg</dt>
+<dd>Number of Images</dd>
+<dt>st_nspec</dt>
+<dd>Number of Spectra</dd>
+<dt>st_uj</dt>
+<dd><p class="first">U <a class="reference external" href="http://www.astro.utoronto.ca/~patton/astro/mags.html">(Johnson) magnitude</a></p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_ujerr</li>
+<li>st_ujlim</li>
+<li>st_ujblend</li>
+</ul>
+</dd>
+<dt>st_bj</dt>
+<dd><p class="first">B <a class="reference external" href="http://www.astro.utoronto.ca/~patton/astro/mags.html">(Johnson) magnitude</a></p>
+<ul class="last simple">
+<li>st_bjerr</li>
+<li>st_bjlim</li>
+<li>st_bjblend</li>
+</ul>
+</dd>
+<dt>st_rc</dt>
+<dd><p class="first">R <a class="reference external" href="http://www.astrophysicsspectator.com/topics/observation/MagnitudesAndColors.html">(Cousins) magnitude</a></p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_rcerr</li>
+<li>st_rclim</li>
+<li>st_rcblend</li>
+</ul>
+</dd>
+<dt>st_ic</dt>
+<dd><p class="first">I <a class="reference external" href="http://www.astrophysicsspectator.com/topics/observation/MagnitudesAndColors.html">(Cousins) magnitude</a></p>
+<ul class="last simple">
+<li>st_icerr</li>
+<li>st_iclim</li>
+<li>st_icblend</li>
+</ul>
+</dd>
+<dt>st_j</dt>
+<dd><p class="first">J (<a class="reference external" href="http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec6_4a.html">2MASS</a>) magnitude</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_jerr</li>
+<li>st_jlim</li>
+<li>st_jblend</li>
+</ul>
+</dd>
+<dt>st_h</dt>
+<dd><p class="first">H (<a class="reference external" href="http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec6_4a.html">2MASS</a>) magnitude</p>
+<ul class="last simple">
+<li>st_herr</li>
+<li>st_hlim</li>
+<li>st_hblend</li>
+</ul>
+</dd>
+<dt>st_k</dt>
+<dd><p class="first">K (<a class="reference external" href="http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec6_4a.html">2MASS</a>) magnitude</p>
+<ul class="last simple">
+<li>st_kerr</li>
+<li>st_klim</li>
+<li>st_kblend</li>
+</ul>
+</dd>
+<dt>st_irac1</dt>
+<dd><p class="first">IRAC 3.6 magnitude</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_irac1err</li>
+<li>st_irac1lim</li>
+<li>st_irac1blend</li>
+</ul>
+</dd>
+<dt>st_irac2</dt>
+<dd><p class="first">IRAC 4.5 magnitude</p>
+<ul class="last simple">
+<li>st_irac2err</li>
+<li>st_irac2lim</li>
+<li>st_irac2blend</li>
+</ul>
+</dd>
+<dt>st_irac3</dt>
+<dd><p class="first">IRAC 5.8 magnitude</p>
+<ul class="last simple">
+<li>st_irac3err</li>
+<li>st_irac3lim</li>
+<li>st_irac3blend</li>
+</ul>
+</dd>
+<dt>st_irac4</dt>
+<dd><p class="first">IRAC 8.0 magnitude</p>
+<ul class="last simple">
+<li>st_irac4err</li>
+<li>st_irac4lim</li>
+<li>st_irac4blend</li>
+</ul>
+</dd>
+<dt>st_mips1</dt>
+<dd><p class="first">MIPS 24 micron flux (Jy)</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_mips1err</li>
+<li>st_mips1lim</li>
+<li>st_mips1blend</li>
+</ul>
+</dd>
+<dt>st_mips2</dt>
+<dd><p class="first">MIPS 70 micron flux (Jy)</p>
+<ul class="last simple">
+<li>st_mips2err</li>
+<li>st_mips2lim</li>
+<li>st_mips2blend</li>
+</ul>
+</dd>
+<dt>st_mips3</dt>
+<dd><p class="first">MIPS 160 micron flux (Jy)</p>
+<ul class="last simple">
+<li>st_mips3err</li>
+<li>st_mips3lim</li>
+<li>st_mips3blend</li>
+</ul>
+</dd>
+<dt>st_iras1</dt>
+<dd><p class="first">IRAS 12 micron flux (Jy)</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_iras1err</li>
+<li>st_iras1lim</li>
+<li>st_iras1blend</li>
+</ul>
+</dd>
+<dt>st_iras2</dt>
+<dd><p class="first">IRAS 25 micron flux (Jy)</p>
+<ul class="last simple">
+<li>st_iras2err</li>
+<li>st_iras2lim</li>
+<li>st_iras2blend</li>
+</ul>
+</dd>
+<dt>st_iras3</dt>
+<dd><p class="first">IRAS 60 micron flux (Jy)</p>
+<ul class="last simple">
+<li>st_iras3err</li>
+<li>st_iras3lim</li>
+<li>st_iras3blend</li>
+</ul>
+</dd>
+<dt>st_iras4</dt>
+<dd><p class="first">IRAS 100 micron flux (Jy)</p>
+<ul class="last simple">
+<li>st_iras3err</li>
+<li>st_iras3lim</li>
+<li>st_iras3blend</li>
+</ul>
+</dd>
+<dt>st_umbj</dt>
+<dd><p class="first">(U-B) color (mags)</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_umbjerr</li>
+<li>st_umbjlim</li>
+<li>st_umbjblend</li>
+</ul>
+</dd>
+<dt>st_bmvj</dt>
+<dd><p class="first">(B-V) color (mags)</p>
+<ul class="last simple">
+<li>st_bmvjerr</li>
+<li>st_bmvjlim</li>
+<li>st_bmvjblend</li>
+</ul>
+</dd>
+<dt>st_vjmic</dt>
+<dd><p class="first">(V-Ic) color (mags)</p>
+<ul class="last simple">
+<li>st_vjmicerr</li>
+<li>st_vjmiclim</li>
+<li>st_vjmicblend</li>
+</ul>
+</dd>
+<dt>st_vjmrc</dt>
+<dd><p class="first">(V-Rc) color (mags)</p>
+<ul class="last simple">
+<li>st_vjmrcerr</li>
+<li>st_vjmrclim</li>
+<li>st_vjmrcblend</li>
+</ul>
+</dd>
+<dt>st_jmh2</dt>
+<dd><p class="first">(J-H) color (mags)</p>
+<ul class="last simple">
+<li>st_jmh2err</li>
+<li>st_jmh2lim</li>
+<li>st_jmh2blend</li>
+</ul>
+</dd>
+<dt>st_hmk2</dt>
+<dd><p class="first">(H-K) color (mags)</p>
+<ul class="last simple">
+<li>st_hmk2err</li>
+<li>st_hmk2lim</li>
+<li>st_hmk2blend</li>
+</ul>
+</dd>
+<dt>st_jmk2</dt>
+<dd><p class="first">(J-K) color (mags)</p>
+<ul class="last simple">
+<li>st_jmk2err</li>
+<li>st_jmk2lim</li>
+<li>st_jmk2blend</li>
+</ul>
+</dd>
+<dt>st_bmy</dt>
+<dd><p class="first">Stromgren (b-y) (mags)</p>
+<pre class="literal-block">
+Photometric system.
+</pre>
+<ul class="last simple">
+<li>st_bmyerr</li>
+<li>st_bmylim</li>
+<li>st_bmyblend</li>
+</ul>
+</dd>
+<dt>st_m1</dt>
+<dd><p class="first">Stromgren m1 (mags)</p>
+<ul class="last simple">
+<li>st_m1err</li>
+<li>st_m1lim</li>
+<li>st_m1blend</li>
+</ul>
+</dd>
+<dt>st_c1</dt>
+<dd><p class="first">Stromgren c1 (mags)</p>
+<ul class="last simple">
+<li>st_c1err</li>
+<li>st_c1lim</li>
+<li>st_c1blend</li>
+</ul>
+</dd>
+<dt>pl_orblper</dt>
+<dd><p class="first">Longitude of <a class="reference external" href="http://en.wikipedia.org/wiki/Periastron">Periastron</a> (deg)</p>
+<pre class="literal-block">
+The closest approach of the planet to its star. There's a pl_orbtper
+which is the time of Periastron. This is the location.
+</pre>
+<ul class="last simple">
+<li>(+) pl_orblpererr1</li>
+<li>(-) pl_orblpererr2</li>
+<li>pl_orblperlim</li>
+</ul>
+</dd>
+<dt>pl_masse</dt>
+<dd><p class="first">Planet Mass (Earth)</p>
+<pre class="literal-block">
+Number of Earth masses in this planet. Come on, 1!
+</pre>
+<ul class="last simple">
+<li>(+) pl_masseerr1</li>
+<li>(-) pl_masseerr2</li>
+<li>pl_masselim</li>
+</ul>
+</dd>
+<dt>pl_rade</dt>
+<dd><p class="first">Planet Radius (Earth)</p>
+<pre class="literal-block">
+Number of Earth radiuses in this planet. Does this matter if the mass
+is near-Earth? I'm thinking of tiny planets like Le Petit Prince. Or a
+big fluffy pillow planet...
+</pre>
+<ul class="last simple">
+<li>(+) pl_radeerr1</li>
+<li>(-) pl_radeerr2</li>
+<li>pl_radelim</li>
+</ul>
+</dd>
+<dt>pl_rads</dt>
+<dd><p class="first">Planet Radius (solar)</p>
+<pre class="literal-block">
+Probably the number of sun-radiuses in the planets, but...that doesn't
+seem to be useful since the sun is quite large. Maybe there are planets
+that big? I think I have all I need with the other fields, so I'll
+ignore this.
+</pre>
+<ul class="last simple">
+<li>(+) pl_radserr1</li>
+<li>(-) pl_radserr2</li>
+<li>pl_radserrlim</li>
+</ul>
+</dd>
+<dt>pl_tran</dt>
+<dd><p class="first">Transit Flag (1=yes, 0=no)</p>
+<pre class="last literal-block">
+There has to be a transit to measure it in the first place. I don't
+know what this means.
+</pre>
+</dd>
+<dt>pl_trandep</dt>
+<dd><p class="first">Transit Depth (percentage)</p>
+<ul class="last simple">
+<li>(+) pl_trandeperr1</li>
+<li>(-) pl_trandeperr2</li>
+<li>pl_trandeplim</li>
+</ul>
+</dd>
+<dt>pl_trandur</dt>
+<dd><p class="first">Transit Duration (days)</p>
+<ul class="last simple">
+<li>(+) pl_trandurerr1</li>
+<li>(-) pl_trandurerr2</li>
+<li>pl_trandurlim</li>
+</ul>
+</dd>
+<dt>pl_tranmid</dt>
+<dd><p class="first">Transit Mid-point (Julian days)</p>
+<ul class="last simple">
+<li>(+) pl_tranmiderr1</li>
+<li>(-) pl_tranmiderr2</li>
+<li>pl_tranmidlim</li>
+</ul>
+</dd>
+<dt>pl_disc</dt>
+<dd>Discovery Year</dd>
+<dt>pl_status</dt>
+<dd><p class="first">Planet Status</p>
+<pre class="last literal-block">
+In this table, they're all 3. I think 3 is 'confirmed'.
+</pre>
+</dd>
+<dt>pl_pelink</dt>
+<dd><p class="first">Planet Encyclopedia</p>
+<pre class="last literal-block">
+Link to more data.
+</pre>
+</dd>
+<dt>pl_edelink</dt>
+<dd><p class="first">Exoplanet Data Explorer</p>
+<pre class="last literal-block">
+Link to more data.
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section" id="id4">
+<span id="kepler-candidates-table"></span><h1>Kepler candidates table.</h1>
+<p><a class="reference internal" href="#back-to-the-top">Back to the top</a>.</p>
+<dl class="docutils">
+<dt>kepid</dt>
+<dd>Unique Kepler Identifier</dd>
+<dt>ra</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Right_ascension">RA</a> (deg)</p>
+<pre class="last literal-block">
+Right ascension, used for finding the star in the celestial sphere.
+</pre>
+</dd>
+<dt>dec</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Declination">Dec</a> (deg)</p>
+<pre class="last literal-block">
+Declination, used for finding the star in the celestial sphere.
+</pre>
+</dd>
+<dt>kepmag</dt>
+<dd><p class="first">Kepler-band Magnitude</p>
+<pre class="last literal-block">
+The only search results I found were people providing the same data. I
+guess it's just a measurement of the brightness of the star. The
+following site gave it's range as 2.982 to 25.0.
+
+http://archive.stsci.edu/kepler/kic10/help/columns.html
+</pre>
+</dd>
+<dt>teff</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Star#Temperature">Effective Temperature</a> (K)</p>
+<pre class="last literal-block">
+It's based on the class of the star.
+</pre>
+</dd>
+<dt>logg</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Surface_gravity">Surface Gravity</a> (cm/s?)</p>
+<pre class="last literal-block">
+The exoplanets table doesn't have this information for the Kepler
+planets. Maybe it's implicit in the mass/radius calculations.
+</pre>
+</dd>
+<dt>radius</dt>
+<dd><p class="first">Stellar Radius (solar radius)</p>
+<pre class="last literal-block">
+Radius of the host star as a multiple of the sun's radius.
+</pre>
+</dd>
+<dt>mass</dt>
+<dd><p class="first">Stellar Mass (solar mass)</p>
+<pre class="last literal-block">
+Mass of the host star as a multiple of the sun's mass.
+</pre>
+</dd>
+<dt>stflag</dt>
+<dd><p class="first">Flag for origin of stellar parameters:</p>
+<p>0: Teff,log(g), and Rad are derived using KIC J-K color and linear
+interpolation of luminosity class V stellar properties of Schmidt-Kaler
+(1982).</p>
+<p>1: KIC Teff and log(g) are used as initial values for MCMC parameter search
+of Yonsei-Yale stellar evolution models yielding Teff, log(g), and Rad.</p>
+<p>2: Teff, log(g), and Rad are derived using SPC spectral synthesis and
+interpolation of the Yale-Yonsei evolutionary tracks.</p>
+<p class="last">3: Teff, log(g), and Rad are derived using SME spectral synthesis and
+interpolation of the Yale-Yonsei evolutionary tracks.</p>
+</dd>
+<dt>cdpp6</dt>
+<dd>Combined 6 hour differential photometric precision (rms of quarters 1
+through 6 in units of parts per million)</dd>
+<dt>kepoi_name</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Kepler_Object_of_Interest">Kepler object of interest</a> name for display (KNNNNN.DD)</p>
+<pre class="last literal-block">
+Catalog.
+</pre>
+</dd>
+<dt>kepler_name</dt>
+<dd>Kepler name for confirmed planets (e.g. Kepler-6b)</dd>
+<dt>kepoi_type</dt>
+<dd><p class="first">KepOI Type (CANDIDATE, CANDIDATE-FOP (a candidate being studied by the
+Kepler Mission Follow-up Observing PRogram), CONFIRMED, FALSE POSITIVE)</p>
+<pre class="last literal-block">
+This is a planet status.
+</pre>
+</dd>
+<dt>period</dt>
+<dd>Period</dd>
+<dt>periodunc</dt>
+<dd>Period uncertainty (days) in BKJD=BJD-2454833</dd>
+<dt>epoch</dt>
+<dd><p class="first"><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> epoch (days)</p>
+<pre class="last literal-block">
+The values are more than 100 and less than 400. I think this is number
+of days it took for the planet to pass in front of the star, but 300+
+days seems like a lot.
+
+Perhaps the epoch is the days from a reference point, like the start of
+the mission.
+</pre>
+</dd>
+<dt>epochunc</dt>
+<dd><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> epoch uncertainty (days)</dd>
+<dt>depth</dt>
+<dd><p class="first"><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> depth (ppm)</p>
+<pre class="last literal-block">
+NASA's Kepler mission site gives this as &quot;the fractional change in
+brightness&quot;. &quot;Depth&quot; probably refers to the dip in the light curve.
+</pre>
+</dd>
+<dt>depthunc</dt>
+<dd><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> depth uncertainty (ppm)</dd>
+<dt>duration</dt>
+<dd><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> duration</dd>
+<dt>durationunc</dt>
+<dd><a class="reference external" href="http://kepler.nasa.gov/Science/about/characteristicsOfTransits/">Transit</a> duration uncertainty (hours)</dd>
+<dt>impact</dt>
+<dd><p class="first">Impact parameter</p>
+<pre class="last literal-block">
+My searches only return things about the social and scientific impact
+of the mission, not a description of what this measurement means.
+</pre>
+</dd>
+<dt>impactunc</dt>
+<dd>Impact parameter uncertainty</dd>
+<dt>occdp</dt>
+<dd><p class="first">Occultation depth (Relative flux level at phase=0.5 divided by noise)</p>
+<pre class="last literal-block">
+Probably related to transit depth. I don't think I need this field.
+</pre>
+</dd>
+<dt>occdpunc</dt>
+<dd>Occultation depth uncertainty</dd>
+<dt>sma</dt>
+<dd>Planet-star distance (AU); note that is the semi-major axis when
+eccentricity = 0</dd>
+<dt>smaunc</dt>
+<dd>Planet-star distance uncertainty (AU)</dd>
+<dt>smasrad</dt>
+<dd><p class="first">Planet-star distance to Stellar Radius Ratio</p>
+<pre class="last literal-block">
+This can probably be used to evaluate the habitable zone.
+</pre>
+</dd>
+<dt>smasradun</dt>
+<dd>Planet-star distance to Stellar Radius Ratio uncertainty</dd>
+<dt>pradsrad</dt>
+<dd><p class="first">Planet to Stellar Radius Ratio</p>
+<pre class="last literal-block">
+This can probably be used to evaluate the habitable zone.
+</pre>
+</dd>
+<dt>pradsradunc</dt>
+<dd>Planet to Stellar Radius Ratio uncertainty</dd>
+<dt>prad</dt>
+<dd><p class="first">Planet Radius (Earth radius)</p>
+<pre class="last literal-block">
+Radius of the planet as a multiple of Earth's radius.
+</pre>
+</dd>
+<dt>pradunc</dt>
+<dd>Planet Radius (Earth radius) uncertainty</dd>
+<dt>eqt</dt>
+<dd><p class="first">Equilibrium temperature (K)</p>
+<pre class="last literal-block">
+On the wiki page for Kepler-11g, the equilibrium temperature is the
+surface temperature of the planet in the absence of atmospheric
+effects. Probably this is a function of the class of the host star and
+the planets orbital distance.
+</pre>
+</dd>
+<dt>eqtunc</dt>
+<dd>Equilibrium temperature uncertainty (K)</dd>
+<dt>tm_designation</dt>
+<dd>2MASS name</dd>
+<dt>glon</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a> Longitude (deg)</dd>
+<dt>glat</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Galactic_coordinate_system">Galactic</a> Latitude (deg)</dd>
+<dt>gmag</dt>
+<dd>g'-band magnitude</dd>
+<dt>rmag</dt>
+<dd>r'-band magnitude</dd>
+<dt>imag</dt>
+<dd>i'-band magnitude</dd>
+<dt>zmag</dt>
+<dd>z'-band magnitude</dd>
+<dt>gredmag</dt>
+<dd>GRED-band magnitude</dd>
+<dt>d51mag</dt>
+<dd>D51-band magnitude</dd>
+<dt>jmag</dt>
+<dd>J-band magnitude</dd>
+<dt>hmag</dt>
+<dd>H-band magnitude</dd>
+<dt>kmag</dt>
+<dd>K-band magnitude</dd>
+<dt>grcolor</dt>
+<dd>(g'-r') color magnitude</dd>
+<dt>jkcolor</dt>
+<dd>(J-K) color magnitude</dd>
+<dt>gkcolor</dt>
+<dd>(g'-K) color magnitude</dd>
+<dt>feh</dt>
+<dd><p class="first">[Fe/H] (dex)</p>
+<pre class="last literal-block">
+Metallicity of the star.
+</pre>
+</dd>
+<dt>ebminusv</dt>
+<dd>E(B-V) reddening (mag)</dd>
+<dt>av</dt>
+<dd>Av extinction (mag)</dd>
+<dt>vsini</dt>
+<dd><a class="reference external" href="http://books.google.com/books?id=jAe4P3GIZRoC&amp;pg=PT117&amp;lpg=PT117&amp;dq=stellar+v+sin&amp;source=bl&amp;ots=y7LR1tuIn6&amp;sig=hlhPvulvidjuBydFFHowme1f-lc&amp;hl=en&amp;sa=X&amp;ei=6b2ZT4OWNaLH6QHjq6TlBg&amp;ved=0CGkQ6AEwCQ#v=onepage&amp;q=v%20sin&amp;f=false">V sin</a> (i) (km/sec)</dd>
+<dt>parallax</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Stellar_parallax">Parallax</a> (arcsec)</p>
+<pre class="last literal-block">
+Method of measuring distance.
+</pre>
+</dd>
+<dt>pmtotal</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (arcsec/year)</dd>
+<dt>pmra</dt>
+<dd>RA <a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (arcsec/year)</dd>
+<dt>pmdec</dt>
+<dd>Dec <a class="reference external" href="http://en.wikipedia.org/wiki/Proper_motion">Proper Motion</a> (arcsec/year)</dd>
+<dt>rv</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Radial_velocity">Radial Velocity</a> (km/sec)</p>
+<pre class="last literal-block">
+The wobble of the star.
+</pre>
+</dd>
+<dt>galaxy</dt>
+<dd><p class="first">Star/Galaxy Flag (0=star, 1=galaxy)</p>
+<pre class="last literal-block">
+All the values in this table are 0. This is probably cruft from another
+database schema.
+</pre>
+</dd>
+<dt>blend</dt>
+<dd>Blend Flag</dd>
+<dt>variable</dt>
+<dd><p class="first">Constant/Variable Flag (0=constant, 1=variable)</p>
+<pre class="last literal-block">
+All 0 in this table.
+</pre>
+</dd>
+<dt>fov_flag</dt>
+<dd>FOV Flag (0=outside, FOV, 1=non-target, 2=target)</dd>
+<dt>crowding</dt>
+<dd>Fraction of flux (target/total)</dd>
+<dt>neb</dt>
+<dd>Number of Eclipsing Binaries</dd>
+<dt>ncen</dt>
+<dd>Number of Centroid Values</dd>
+<dt>nts</dt>
+<dd>Number of Time Series</dd>
+<dt>nlc</dt>
+<dd>Number of Long Cadence</dd>
+<dt>nsc</dt>
+<dd>Number of Short Cadence</dd>
+<dt>normd1</dt>
+<dd>Normalized <a class="reference external" href="http://en.wikipedia.org/wiki/Mahalanobis_distance">Mahalonobis distance</a> to most probable class (class 1)</dd>
+<dt>normd2</dt>
+<dd>Normalized <a class="reference external" href="http://en.wikipedia.org/wiki/Mahalanobis_distance">Mahalonobis distance</a> to second most probable class (class 2)</dd>
+<dt>normd3</dt>
+<dd>Normalized <a class="reference external" href="http://en.wikipedia.org/wiki/Mahalanobis_distance">Mahalonobis distance</a> to third most probable class (class 3)</dd>
+<dt>classprob1</dt>
+<dd><p class="first">Relative probability for class 1</p>
+<pre class="literal-block">
+Presumably this refers to the planet, however, the only thing I could
+find is the Sudarsky extrasolar planet classification which actually
+has five classes. Maybe the Kepler candidates are only part of the
+first three classes somehow.
+</pre>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Sudarsky_extrasolar_planet_classification">Sudarsky extrasolar planet classification</a>.</p>
+</dd>
+<dt>classprob2</dt>
+<dd>Relative probability for class 2</dd>
+<dt>classprob3</dt>
+<dd>Relative probability for class 3</dd>
+<dt>classcode1</dt>
+<dd>Variability class 1</dd>
+<dt>classcode2</dt>
+<dd>Variability class 2</dd>
+<dt>classcode3</dt>
+<dd>Variability class 3</dd>
+<dt>spf1</dt>
+<dd><p class="first">Significance parameter frequency 1 (probability)</p>
+<pre class="last literal-block">
+Unproductive search for &quot;significance astronomy&quot; and &quot;significance
+parameter frequency&quot;.
+</pre>
+</dd>
+<dt>spf2</dt>
+<dd>Significance parameter frequency 2 (probability)</dd>
+<dt>spf3</dt>
+<dd>Significance parameter frequency 3 (probability)</dd>
+<dt>freq1</dt>
+<dd>Frequency 1 (cycles per day)</dd>
+<dt>freq2</dt>
+<dd>Frequency 2 (cycles per day)</dd>
+<dt>freq3</dt>
+<dd>Frequency 3 (cycles per day)</dd>
+<dt>amp11</dt>
+<dd>Amplitude of 1st harmonic of frequency 1 (mags)</dd>
+<dt>amp12</dt>
+<dd>Amplitude of 2nd harmonic of frequency 1 (mags)</dd>
+<dt>amp13</dt>
+<dd>Amplitude of 3rd harmonic of frequency 1 (mags)</dd>
+<dt>amp14</dt>
+<dd>Amplitude of 1st harmonic of frequency 2 (mags)</dd>
+<dt>amp21</dt>
+<dd>Amplitude of 2nd harmonic of frequency 2 (mags)</dd>
+<dt>amp22</dt>
+<dd>Amplitude of 3rd harmonic of frequency 2 (mags)</dd>
+<dt>amp23</dt>
+<dd>Amplitude of 4th harmonic of frequency 2 (mags)</dd>
+<dt>amp24</dt>
+<dd>Amplitude of 1st harmonic of frequency 3 (mags)</dd>
+<dt>amp31</dt>
+<dd>Amplitude of 2nd harmonic of frequency 3 (mags)</dd>
+<dt>amp32</dt>
+<dd>Amplitude of 3rd harmonic of frequency 3 (mags)</dd>
+<dt>amp33</dt>
+<dd>Amplitude of 3rd harmonic of frequency 3 (mags)</dd>
+<dt>amp34</dt>
+<dd>Amplitude of 4th harmonic of frequency 3 (mags)</dd>
+<dt>phdiff12</dt>
+<dd>Phase of amp12, if phase if amp11=0 (radians)</dd>
+<dt>phdiff13</dt>
+<dd>Phase of amp12, if phase if amp11=0 (radians)</dd>
+<dt>phdiff14</dt>
+<dd>Phase of amp13, if phase if amp11=0 (radians)</dd>
+<dt>phdiff21</dt>
+<dd>Phase of amp21, if phase if amp11=0 (radians)</dd>
+<dt>phdiff22</dt>
+<dd>Phase of amp22, if phase if amp11=0 (radians)</dd>
+<dt>phdiff23</dt>
+<dd>Phase of amp23, if phase if amp11=0 (radians)</dd>
+<dt>phdiff24</dt>
+<dd>Phase of amp24, if phase if amp11=0 (radians)</dd>
+<dt>phdiff31</dt>
+<dd>Phase of amp31, if phase if amp11=0 (radians)</dd>
+<dt>phdiff32</dt>
+<dd>Phase of amp32, if phase if amp11=0 (radians)</dd>
+<dt>phdiff33</dt>
+<dd>Phase of amp33, if phase if amp11=0 (radians)</dd>
+<dt>phdiff34</dt>
+<dd>Phase of amp34, if phase if amp11=0 (radians)</dd>
+<dt>varred</dt>
+<dd><p class="first">Total <a class="reference external" href="http://en.wikipedia.org/wiki/Variance">variance</a> reduction of the light curve (after fit subtraction)</p>
+<pre class="last literal-block">
+I think this is how well the plot matches that dip in the light wave
+that indicates a planet transit.
+</pre>
+</dd>
+<dt>koi_flag</dt>
+<dd>KOI Flag designating single transit or large uncertainties. From Borucki et
+al (2011): dd = KOI was detected on the basis of a single transit with the
+period derived from the transit duration and stellar radius.</dd>
+<dt>snr</dt>
+<dd>Signal to noise ratio</dd>
+<dt>mes</dt>
+<dd>Multiple Event Statistic; MES is the detection statistic akin to a total
+SNR of the phase-folded transit but constructed using the matched filter
+correlation statistics over phase and period.</dd>
+<dt>chi</dt>
+<dd>Goodness of fit metric</dd>
+<dt>oeslc</dt>
+<dd>Ratio of odd to even numbered transit depths dervied from light curve
+modeling</dd>
+<dt>oesdv</dt>
+<dd>Ratio of odd to even numbered transit depths reported by data validation
+pipeline</dd>
+<dt>cenra</dt>
+<dd><p class="first"><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> <a class="reference external" href="http://en.wikipedia.org/wiki/Right_ascension">RA</a> offset (arcsec); transit source position minus target star
+position</p>
+<pre class="last literal-block">
+I think this means that Kepler's able to distinguish the distance to
+the planet and the distance to the star. That's one fine machine.
+Probably that's what all that parallax stuff is about.
+</pre>
+</dd>
+<dt>cenraunc</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> <a class="reference external" href="http://en.wikipedia.org/wiki/Right_ascension">RA</a> offset uncertainty (arcsec); transit source position minus
+target star position</dd>
+<dt>cendec</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> <a class="reference external" href="http://en.wikipedia.org/wiki/Declination">dec</a> offset (arcsec); transit source position minus target star
+position</dd>
+<dt>cendecunc</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> <a class="reference external" href="http://en.wikipedia.org/wiki/Declination">dec</a> offset uncertainty (arcsec); transit source position minus
+target star position</dd>
+<dt>cenoffset</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> total offset (arcsec); transit source position minus target star
+position</dd>
+<dt>cenoffsetunc</dt>
+<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Centroid">Centroid</a> total offset uncertainty (arcsec); transit source position minus
+target star position</dd>
+<dt>obs</dt>
+<dd><p class="first">Observed quarters; Six integers indicating which quarters the star was
+observed.</p>
+<pre class="last literal-block">
+I found something that referred to quarters as a segment of time for
+observations.
+</pre>
+</dd>
+<dt>dra</dt>
+<dd><p class="first">RA Offset of background object containing the transit</p>
+<pre class="last literal-block">
+Is the background object the star?
+</pre>
+</dd>
+<dt>ddec</dt>
+<dd>Dec Offset of background object containing the transit</dd>
+<dt>offset</dt>
+<dd>Offset of background object containing the transit</dd>
+<dt>bkgdepth</dt>
+<dd>Background Object Transit Depth</dd>
+<dt>bkgkepid</dt>
+<dd>Background Object KepID</dd>
+<dt>djmag</dt>
+<dd>Delta J-band magnitude between background object and target</dd>
+<dt>scicomm</dt>
+<dd><p class="first">Science team comment</p>
+<pre class="last literal-block">
+These are additional details about the observation like &quot;Secondary
+eclipse&quot; and &quot;Stellar binary&quot;, not exclamations like &quot;w00t!&quot; or &quot;Space
+is the place!&quot;. Wholly professional.
+</pre>
+</dd>
+</dl>
+</div>
+
+<a href="kepler-data-fields.rst">
+    View the source document (reST)
+</a>, or
+<a href="kepler-data-fields.pdf">
+    download a PDF version
+</a>.
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'stauglernet'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+<script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-1055584-1");
+        pageTracker._trackPageview();
+    } catch(err) {}
+</script>
+</div>
+</body>
+</html>

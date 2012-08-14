@@ -1,0 +1,67 @@
+/* Fonts */
+nav, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cuprum', sans-serif;
+    font-size: 24px;
+    }
+
+body {
+    font-family: 'Junge', serif;
+    font-size: 16px;
+    }
+
+
+a {
+    text-decoration: none;
+    color: inherit;
+    }
+
+
+
+html {
+    height: 100%;
+    }
+
+body {
+    color: #ccc;
+    background-color: #222;
+    min-height: 100%;
+    }
+
+.admin header nav {
+    background-color: #fbb;
+    }
+header nav {
+    margin: 0 auto;
+    max-width: 910px;
+    padding: 10px;
+    background-color: #ccc;
+    color: #2b3e42;
+    border-bottom: solid 1px #222;
+    }
+
+footer nav {
+    margin: 20px auto;
+    font-size: 14px;
+    max-width: 850px;
+    }
+
+.page {
+    background-color: #eee;
+    color: #2b3e42;
+    margin: 0 auto;
+    padding: 10px;
+    max-width: 850px;
+    }
+
+p {
+    margin: 10px;
+    }
+
+/* Error page. */
+.error h1 {
+    color: #ff3e42;
+    }
+
+.error p {
+    color: #993e42;
+    }
