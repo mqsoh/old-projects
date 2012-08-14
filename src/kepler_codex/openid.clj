@@ -24,17 +24,17 @@
     it.
 
     Returns:
-
         {:url \"A URL.\"
          :discovery org.openid4java.discovery.DiscoveryInformation}"
-
     [postback-url openid-identity]
+
     (let [discoveries (.discover consumer-manager openid-identity)
           discovered  (.associate consumer-manager discoveries)
           auth-req    (.authenticate consumer-manager discovered postback-url)
           fetch-req   (doto (FetchRequest/createFetchRequest)
                             (.addAttribute "email" "http://schema.openid.net/contact/email" true))
           auth-url    (.getDestinationUrl (doto auth-req (.addExtension fetch-req)) true)]
+
         {:url auth-url
          :discovery discovered}))
 
@@ -55,8 +55,8 @@
 
     Returns:
         Verified identity or nil on failure."
-
     [request-url discovery]
+
     (let [[_ query]     (string/split request-url #"\?")
           query-params  (into {}
                              (for [[_ k v] (re-seq #"([^=&]+)=([^&]+)" query)]

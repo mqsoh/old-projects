@@ -1,5 +1,5 @@
 (ns kepler-codex.response
-    "This module response maps for ring.")
+    "This module wraps response maps for ring.")
 
 
 (defn html

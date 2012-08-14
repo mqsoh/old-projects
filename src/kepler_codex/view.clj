@@ -1,5 +1,6 @@
 (ns kepler-codex.view
-    "This module renders all sorts of pages and fragments."
+    "This module renders all sorts of pages and fragments. It acts as a Clojure
+    wrapper around template requirements."
 
     (:require
         [clojure.string :as string])
@@ -11,31 +12,60 @@
         (org.stringtemplate.v4 STGroupString)))
 
 
-(declare render skel)
+(defn render
+    "Render a template.
+
+    Args:
+        params -- A map with :template-name defined. You can additionally
+                  define :template-group. Any additional keys are added to the
+                  template, negotiated between the caller of this function and
+                  the template.
+
+    Returns:
+        A string of template data."
+    [params]
+
+    (let [template-group (:template-group params)
+          template-name (:template-name params)
+          template-file (str "templates/" (or template-group template-name) ".st")
+
+          contents (slurp (resource template-file))
+          group (STGroupString. "What is sourceName for?" contents \{ \})
+          group-function (last (string/split template-name #"/"))
+          template (.getInstanceOf group group-function)]
+
+        (doseq [[k v] (dissoc params :template-name :template-group)]
+            (.add template (name k) v))
+
+        (.render template)))
 
 
-(defn home
-    [user-is-admin]
-    (skel "Home"
-        (render {
-            :template-name "home"
-            :user_is_admin user-is-admin})))
+(defn skel
+    "Render something in the sitewide skeleton.
 
+    The template used to render the skeleton can take the following input.
 
-(defn error
-    [message]
-    (skel "Error"
-        (render {
-            :template-name "error"
-            :message message})))
+        {:title \"Page title.\"
+         :body_class \"page-title\"
+         :body \"A string of content.\"}
 
+    Args:
+        title -- The page title. A tokenized version of this will be passed to
+                 the skeleton as :body_class.
+        body -- Some kind of string.
 
-(defn message
-    [title message]
-    (skel title (render {
-        :template-name "message"
-        :title title
-        :message message})))
+    Returns:
+        A string of text."
+    [title body]
+
+    (let [body-class (string/replace
+                        (string/lower-case title)
+                        #"[^\w]+"
+                        "-")]
+        (render {:template-name "skel"
+                 :title title
+                 :body_class body-class
+                 :body body})))
 
 
 (defn simple
@@ -45,40 +75,29 @@
     (render {:template-name template-name}))
 
 
-(defn skel
-    "Render the "
-    [title body]
-    (let [body-class (string/replace
-                        (string/lower-case title)
-                        #"[^\w]+"
-                        "-")]
-        (render {
-            :template-name "skel"
-            :title title
-            :body_class body-class
-            :page body})))
-
-
 (defn skel-simple
+    "Render a template with no parameters in the sitewide skeleton."
+
     [title template-name]
     (skel "title" (simple template-name)))
 
 
-(defn render
-    "Renders a template. 'Params' is a map that must have :template defined.
-    The rest are template parameters that you'll negotiate between yourself and
-    that template."
-    [params]
+(defn home
+    [user-is-admin]
+    (skel "Home"
+        (render {:template-name "pages/home"
+                 :user_is_admin user-is-admin})))
 
-    (let [template-group (:template-group params)
-          template-name (:template-name params)
-          template-file (str "templates/" (or template-group template-name) ".st")
 
-          contents (slurp (resource template-file))
-          group (STGroupString. "What is sourceName for?" contents \{ \})
-          template (.getInstanceOf group template-name)]
+(defn error
+    [message]
+    (skel "Error"
+        (render {:template-name "pages/error"
+                 :message message})))
 
-        (doseq [[k v] (dissoc params :template-name :template-group)]
-            (.add template (name k) v))
 
-        (.render template)))
+(defn message
+    [title message]
+    (skel title (render {:template-name "pages/message"
+                         :title title
+                         :message message})))

@@ -1,5 +1,6 @@
 (ns kepler-codex.pages
-    "A collection of page handlers."
+    "A collection of page handlers. These are the entry points from the router
+    in kepler-codex.core."
 
     (:require
         [kepler-codex.openid :as openid]
@@ -15,18 +16,17 @@
 (defn home
     [request]
     (resp/html-ok
-        (view/skel-simple "Home" "home")))
+        (view/home false)))
 
 
 (defn login
     [request]
     (resp/html-ok
-        (view/skel-simple "Login" "login")))
+        (view/skel-simple "Login" "pages/login")))
 
 
 (defn login-post
     "Handles an OpenID authentication request."
-
     [request]
 
     (if-let [openid-identity (get (:params request) "openid-identity")]
@@ -35,8 +35,7 @@
               {auth-url :url, discovery :discovery} (openid/auth postback-url openid-identity)]
 
             (resp/redirect auth-url
-                {:session
-                    {:openid-discovery discovery}}))
+                {:session {:openid-discovery discovery}}))
 
         ; Bad request.
         (resp/html-bad-request (view/error "You must provide an 'openid-identity' parameter."))))
@@ -47,13 +46,13 @@
     the verified identity is the 'admin-identity'.
 
     Args:
-        admin-identity
-            An ID that the app will consider the admin user."
-
+        admin-identity -- An ID that the app will consider the admin user."
     [admin-identity request]
+
     (let [session (:session request)
           discovery (:openid-discovery session)
-          request-url (str "http://" (get (:headers request) "host") (:uri request) "?" (:query-string request))]
+          host (get (:headers request) "host")
+          request-url (str "http://" host (:uri request) "?" (:query-string request))]
 
         (if (and discovery request-url)
             (let [verified (openid/verify request-url discovery)]

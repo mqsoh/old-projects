@@ -1,4 +1,4 @@
-skel(title, body_class, page) ::= <<
+skel(title, body_class, body) ::= <<
 <!DOCTYPE html>
 <html>
     <head>
@@ -26,7 +26,7 @@ skel(title, body_class, page) ::= <<
         </div>
 
         <div class="container page">
-            {page}
+            {body}
         </div>
 
         <div class="container footer">
