@@ -19,8 +19,8 @@
 
 
 (deftest properly-configured
-  (is (not (empty? (:session-name config))))
-  (is (not (empty? (:admin-identity config)))))
+  (is (not (empty? (:session-name @config))))
+  (is (not (empty? (:admin-identity @config)))))
 
 
 (deftest pages

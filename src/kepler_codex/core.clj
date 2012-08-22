@@ -15,12 +15,7 @@
     (:gen-class))
 
 
-(def config
-    "This will probably need to be a properties file, eventually."
-
-    {:session-name "kepler-codex-session"
-     :admin-identity "https://www.google.com/accounts/o8/id?id=AItOawlS7Q-SfuFC7pRtAv6G2cEJbKsyfGb0kJU"}
-     :datomic-uri "datomic:dev://localhost/kepler-codex")
+(def ^:dynamic config (atom (read-string (slurp "config.clj"))))
 
 
 (defn router
@@ -41,7 +36,7 @@
         (pages/login-post request)
 
         #"^/login-postback$"
-        (pages/login-postback (:admin-identity config) request)
+        (pages/login-postback (:admin-identity @config) request)
 
         #"^/admin$"
         (pages/admin request)
@@ -50,8 +45,8 @@
         (pages/not-found))]
 
     ; I don't want to force the handlers to maintain the session if they're
-    ; uninterested in it. This will default to the request's session if the
-    ; response has no session.
+    ; uninterested in it. If the response doesn't have a :session, we'll
+    ; default to the request's :session.
     (merge {:session (:session request)} response)))
 
 
@@ -76,12 +71,17 @@
 
     (-> router
         (wrap-params)
-        (wrap-session {:cookie-name (:session-name config)})
+        (wrap-session {:cookie-name (:session-name @config)})
         (wrap-resource "resources")
         (wrap-file-info)
         (log)))
 
 
 (defn -main
-    [port]
-    (run-jetty #'app {:port (Integer. port) :join? false}))
+    [& args]
+
+    (if (not (empty? args))
+        (let [config-file (first args)]
+            (swap! config merge (read-string (slurp config-file)))))
+
+    (run-jetty #'app (:jetty @config)))
