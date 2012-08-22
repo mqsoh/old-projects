@@ -1,0 +1,58 @@
+[
+    {:db/id #db/id[:db.part/user]
+     :exocodex/name "Sun"
+     :exocodex/type :exocodex.type/star
+     :exocodex.stellar/name "Sol"
+     :exocodex.stellar/distance 0.0
+     :exocodex.stellar/galactic-latitude 0.0
+     :exocodex.stellar/galactic-longitude 0.0
+     :exocodex.link/wikipedia "http://en.wikipedia.org/wiki/Sun"}
+
+    {:db/id #db/id[:db.part/user]
+     :exocodex/name "Earth"
+     :exocodex/type :exocodex.type/planet
+     :exocodex.stellar/name "Sol"
+     ; Earth is planet A because it was the first discovered.
+     :exocodex.planet/letter :exocodex.planet.letter/a
+     :exocodex.orbit/distance 1.0
+     :exocodex/earth-masses 1.0
+     :exocodex/earth-radii 1.0
+     :exocodex/status :exocodex.status/confirmed
+     :exocodex.link/wikipedia "http://en.wikipedia.org/wiki/Earth"}
+
+    ; Kepler-20 has both the first planet to be found with a radius smaller
+    ; than that of Earth and also the planet closest to that of Earth.
+    {:db/id #db/id[:db.part/user]
+     :exocodex/name "Kepler-20"
+     :exocodex/type :exocodex.type/star
+     :exocodex.stellar/name "Kepler-20"
+     :exocodex.stellar/distance 290.0
+     :exocodex.stellar/galactic-longitude 73.37702
+     :exocodex.stellar/galactic-latitude 14.573594
+     :exocodex.link/wikipedia "http://en.wikipedia.org/wiki/Kepler_20"}
+
+    ; Kepler-20e -- smaller than Earth!
+    {:db/id #db/id[:db.part/user]
+     :exocodex/name "Kepler-20e"
+     :exocodex.stellar/name "Kepler-20"
+     :exocodex/type :exocodex.type/planet
+     :exocodex.planet/letter :exocodex.planet.letter/e
+     ; TODO: We don't know the orbital distance, but we know the temperature
+     ; according to the Wikipedia article. I thought the temperature was a
+     ; function of the stellar class and orbital distance, but I must be wrong.
+     :exocodex/earth-masses 3.08
+     :exocodex/earth-radii 0.868
+     :exocodex/status :exocodex.status/confirmed
+     :exocodex.link/wikipedia "http://en.wikipedia.org/wiki/Kepler-20e"}
+
+    ; Kepler-20f -- closest radius of Earth! but way too much mass.
+    {:db/id #db/id[:db.part/user]
+     :exocodex/name "Kepler-20f"
+     :exocodex.stellar/name "Kepler-20"
+     :exocodex/type :exocodex.type/planet
+     :exocodex.planet/letter :exocodex.planet.letter/f
+     :exocodex/earth-masses 14.3 ; :(
+     :exocodex/earth-radii 1.03 ; :D
+     :exocodex/status :exocodex.status/confirmed
+     :exocodex.link/wikipedia "http://en.wikipedia.org/wiki/Kepler-20f"}
+]

@@ -19,7 +19,8 @@
     "This will probably need to be a properties file, eventually."
 
     {:session-name "kepler-codex-session"
-     :admin-identity "https://www.google.com/accounts/o8/id?id=AItOawlS7Q-SfuFC7pRtAv6G2cEJbKsyfGb0kJU"})
+     :admin-identity "https://www.google.com/accounts/o8/id?id=AItOawlS7Q-SfuFC7pRtAv6G2cEJbKsyfGb0kJU"}
+     :datomic-uri "datomic:dev://localhost/kepler-codex")
 
 
 (defn router
