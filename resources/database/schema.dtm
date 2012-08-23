@@ -1,160 +1,146 @@
+; Planets and stars are related by :name/stellar. Links are related to anything
+; else by :name.
+;
+; Star
+;     :name
+;     :name/stellar
+;     :loc/distance
+;     :loc/latitude
+;     :loc/longitude
+;
+; Planet
+;     :name
+;     :name/stellar (the host star)
+;     :name/letter
+;     :loc/orbit
+;     :mass/earth
+;     :radius/earth
+;     :status
+;
+; Link
+;     :name
+;     :link
+
 [
-    ; Type of record.
-    {:db/id #db/id[:db.part/db -28]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex/type
-     :db/doc "The type of celestial object."
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one}
-
-    {:db/id #db/id[:db.part/db -29]
-     :db/ident :exocodex.type/planet}
-    {:db/id #db/id[:db.part/db -30]
-     :db/ident :exocodex.type/star}
+    ; Naming.
+    ; =======
 
     ; Name.
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex/name
-     :db/doc "The name of a celestial body."
+     :db/ident :name
+     :db/doc "Any sort of name."
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/one
      :db/index true}
 
-
-    ; Stellar properties.
-    ; ===================
-
-    ; Name.
+    ; Stellar name.
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.stellar/name
+     :db/ident :name/stellar
      :db/doc "The name of a star. When included with a planet, this is the host star."
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/one
      :db/index true}
 
-    ; Distance.
-    {:db/id #db/id[:db.part/db]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex.stellar/distance
-     :db/doc "The distance from Sol in parsecs."
-     :db/valueType :db.type/double
-     :db/cardinality :db.cardinality/one}
-
-    {:db/id #db/id[:db.part/db]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex.stellar.distance/error
-     :db/doc "Error range of the distance from Sol in parsecs."
-     :db/valueType :db.type/double
-     :db/cardinality :db.cardinality/one}
-
-    ; Galactic latitude.
-    {:db/id #db/id[:db.part/db]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex.stellar/galactic-latitude
-     :db/doc "The degree of latitude of a star in the Galactic Coordinate System."
-     :db/valueType :db.type/double
-     :db/cardinality :db.cardinality/one}
-
-    ; Galactic longitude.
-    {:db/id #db/id[:db.part/db]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex.stellar/galactic-longitude
-     :db/doc "The degree of longitude of a star in the Galactic Coordinate System."
-     :db/valueType :db.type/double
-     :db/cardinality :db.cardinality/one}
-
-
-
-    ; Planetary properties.
-    ; =====================
-
     ; Letter.
-    ; -------
-    ; Is it stupid to have an enumeration of letters? On the one hand it's a
-    ; wad of crap, on the other hand there is a limited set of allowed values.
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :name/letter
+     :db/doc "Planets are assigned a letter in order of discovery."
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one}
+
+
+
+    ; Miscellany.
+    ; ===========
+
+    ; Link.
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :link
+     :db/doc "Any sort of external resource."
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/many}
+
+    ; Status -- candidate, confirmed, or rejected.
     {:db/id #db/id[:db.part/db -1]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.planet/letter
-     :db/doc "The planet's letter. I believe this is in order of discovery."
+     :db/ident :status
+     :db/doc "Status of a planet: 'candidate', 'confirmed', 'rejected'."
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one}
 
     {:db/id #db/id[:db.part/db -2]
-     :db/ident :exocodex.planet.letter/a}
-    {:db/id #db/id[:db.part/db -3]
-     :db/ident :exocodex.planet.letter/b}
-    {:db/id #db/id[:db.part/db -4]
-     :db/ident :exocodex.planet.letter/c}
-    {:db/id #db/id[:db.part/db -5]
-     :db/ident :exocodex.planet.letter/d}
-    {:db/id #db/id[:db.part/db -6]
-     :db/ident :exocodex.planet.letter/e}
-    {:db/id #db/id[:db.part/db -7]
-     :db/ident :exocodex.planet.letter/f}
-    {:db/id #db/id[:db.part/db -8]
-     :db/ident :exocodex.planet.letter/g}
-    {:db/id #db/id[:db.part/db -9]
-     :db/ident :exocodex.planet.letter/h}
-    {:db/id #db/id[:db.part/db -10]
-     :db/ident :exocodex.planet.letter/i}
-    {:db/id #db/id[:db.part/db -11]
-     :db/ident :exocodex.planet.letter/j}
-    {:db/id #db/id[:db.part/db -12]
-     :db/ident :exocodex.planet.letter/k}
-    {:db/id #db/id[:db.part/db -13]
-     :db/ident :exocodex.planet.letter/l}
-    {:db/id #db/id[:db.part/db -14]
-     :db/ident :exocodex.planet.letter/m}
-    {:db/id #db/id[:db.part/db -15]
-     :db/ident :exocodex.planet.letter/n}
-    {:db/id #db/id[:db.part/db -16]
-     :db/ident :exocodex.planet.letter/o}
-    {:db/id #db/id[:db.part/db -17]
-     :db/ident :exocodex.planet.letter/p}
-    {:db/id #db/id[:db.part/db -18]
-     :db/ident :exocodex.planet.letter/q}
-    {:db/id #db/id[:db.part/db -19]
-     :db/ident :exocodex.planet.letter/r}
-    {:db/id #db/id[:db.part/db -20]
-     :db/ident :exocodex.planet.letter/s}
-    {:db/id #db/id[:db.part/db -21]
-     :db/ident :exocodex.planet.letter/t}
-    {:db/id #db/id[:db.part/db -22]
-     :db/ident :exocodex.planet.letter/u}
-    {:db/id #db/id[:db.part/db -23]
-     :db/ident :exocodex.planet.letter/v}
-    {:db/id #db/id[:db.part/db -24]
-     :db/ident :exocodex.planet.letter/w}
-    {:db/id #db/id[:db.part/db -25]
-     :db/ident :exocodex.planet.letter/x}
-    {:db/id #db/id[:db.part/db -26]
-     :db/ident :exocodex.planet.letter/y}
-    {:db/id #db/id[:db.part/db -27]
-     :db/ident :exocodex.planet.letter/z}
+     :db/ident :status/candidate}
 
-    ; Orbital distance.
+    {:db/id #db/id[:db.part/db -3]
+     :db/ident :status/confirmed}
+
+    {:db/id #db/id[:db.part/db -4]
+     :db/ident :status/rejected}
+
+
+
+    ; Locating celestial objects.
+    ; ===========================
+
+    ; Distance in parsecs.
+    ; --------------------
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.orbit/distance
-     :db/doc "The orbital distance in AUs."
+     :db/ident :loc/distance
+     :db/doc "A distance in parsecs."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
 
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.orbit.distance/error-low
+     :db/ident :loc/distance-error
+     :db/doc "Error range of a distance in parsecs."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    ; Galactic coordinates.
+    ; ---------------------
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :loc/latitude
+     :db/doc "The degree of latitude in the Galactic Coordinate System."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :loc/longitude
+     :db/doc "The degree of longitude in the Galactic Coordinate System."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    ; Orbit.
+    ; ------
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :loc/orbit
+     :db/doc "An orbital distance in AUs."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :loc/orbit-error-low
      :db/doc "Lower range of the the orbital distance in AUs."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -162,16 +148,21 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.orbit.distance/error-high
+     :db/ident :loc/orbit-error-high
      :db/doc "Upper range of the the orbital distance in AUs."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
+
+
+
+    ; Measuring celestial objects.
+    ; ============================
 
     ; Earth masses.
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex/earth-masses
+     :db/ident :mass/earth
      :db/doc "Number of Earth masses, 1 being the same mass as Earth."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -179,7 +170,7 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.earth-masses/error-low
+     :db/ident :mass/earth-error-low
      :db/doc "Lower range of the number of Earth masses."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -187,7 +178,7 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.earth-masses/error-high
+     :db/ident :mass/earth-error-high
      :db/doc "Upper range of the number of Earth masses."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -196,7 +187,7 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex/earth-radii
+     :db/ident :radius/earth
      :db/doc "Number of Earth radii, 1 being the same mass as Earth."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -204,7 +195,7 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.earth-radii/error-low
+     :db/ident :radius/earth-error-low
      :db/doc "Lower range of the number of Earth radii."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
@@ -212,52 +203,58 @@
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.earth-radii/error-high
+     :db/ident :radius/earth-error-high
      :db/doc "Upper range of the number of Earth radii."
      :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
 
-    ; Status -- candidate, confirmed, or rejected.
-    {:db/id #db/id[:db.part/db -31]
-     :db.install/_attribute :db.part/db
-
-     :db/ident :exocodex/status
-     :db/doc "Status of a planet: 'candidate', 'confirmed', 'rejected'."
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one}
-
-    {:db/id #db/id[:db.part/db -32]
-     :db/ident :exocodex.status/candidate}
-
-    {:db/id #db/id[:db.part/db -33]
-     :db/ident :exocodex.status/confirmed}
-
-    {:db/id #db/id[:db.part/db -34]
-     :db/ident :exocodex.status/rejected}
-
-
-    ; Links.
+    ; Jupiter masses.
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.link/planet-encyclopedia
-     :db/doc "A link to a planet in the Planet Encyclopedia."
-     :db/valueType :db.type/string
+     :db/ident :mass/jupiter
+     :db/doc "Number of Jupiter masses, 1 being the same mass as Jupiter."
+     :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
 
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.link/exoplanet-data-explorer
-     :db/doc "A link to a planet in the Exoplanet Data Explorer."
-     :db/valueType :db.type/string
+     :db/ident :mass/jupiter-error-low
+     :db/doc "Lower range of the number of Jupiter masses."
+     :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
 
     {:db/id #db/id[:db.part/db]
      :db.install/_attribute :db.part/db
 
-     :db/ident :exocodex.link/wikipedia
-     :db/doc "A link to a planet on Wikipedia."
-     :db/valueType :db.type/string
+     :db/ident :mass/jupiter-error-high
+     :db/doc "Upper range of the number of Jupiter masses."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    ; Jupiter radii.
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :radius/jupiter
+     :db/doc "Number of Jupiter radii, 1 being the same mass as Jupiter."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :radius/jupiter-error-low
+     :db/doc "Lower range of the number of Jupiter radii."
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one}
+
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :radius/jupiter-error-high
+     :db/doc "Upper range of the number of Jupiter radii."
+     :db/valueType :db.type/double
      :db/cardinality :db.cardinality/one}
 ]
