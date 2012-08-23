@@ -1,11 +1,11 @@
-(ns kepler-codex.pages
+(ns exocodex.pages
     "A collection of page handlers. These are the entry points from the router
-    in kepler-codex.core."
+    in exocodex.core."
 
     (:require
-        [kepler-codex.openid :as openid]
-        [kepler-codex.view :as view]
-        [kepler-codex.response :as resp]))
+        [exocodex.openid :as openid]
+        [exocodex.view :as view]
+        [exocodex.response :as resp]))
 
 
 (defn not-found []

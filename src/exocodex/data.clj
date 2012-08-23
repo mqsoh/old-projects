@@ -1,4 +1,4 @@
-(ns kepler-codex.data
+(ns exocodex.data
     (:use
         [clojure.pprint]
 

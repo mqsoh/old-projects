@@ -7,3 +7,5 @@
 /.lein-plugins
 /checkouts
 /.lein-deps-sum
+
+doc/marg

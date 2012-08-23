@@ -1,5 +1,5 @@
-(ns kepler-codex.test.core
-  (:use [kepler-codex.core])
+(ns exocodex.test.core
+  (:use [exocodex.core])
   (:use [clojure.test]))
 
 

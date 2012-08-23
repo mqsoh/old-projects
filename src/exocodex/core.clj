@@ -1,5 +1,4 @@
-(ns kepler-codex.core
-
+(ns exocodex.core
     (:use
         [clojure.pprint :as pp :only [pprint]]
         [ring.middleware.session :only [wrap-session]]
@@ -9,8 +8,8 @@
         [ring.util.response :only [resource-response]]
         [ring.adapter.jetty :only [run-jetty]]
 
-        [kepler-codex.pages :as pages]
-        [kepler-codex.response :as resp])
+        [exocodex.pages :as pages]
+        [exocodex.response :as resp])
 
     (:gen-class))
 
@@ -78,6 +77,8 @@
 
 
 (defn -main
+    "Accepts an optional argument, which is the path to a configuration file."
+
     [& args]
 
     (if (not (empty? args))

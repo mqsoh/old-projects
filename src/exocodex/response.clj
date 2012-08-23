@@ -1,4 +1,4 @@
-(ns kepler-codex.response
+(ns exocodex.response
     "This module wraps response maps for ring.")
 
 

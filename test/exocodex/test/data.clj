@@ -1,4 +1,4 @@
-(ns kepler-codex.test.data
+(ns exocodex.test.data
     (:use
         [clojure.test]
         [clojure.pprint]
@@ -6,10 +6,10 @@
         [datomic.api :only [q db] :as d])
 
     (:require
-        [kepler-codex.data :as data]))
+        [exocodex.data :as data]))
 
 
-(def uri "datomic:mem://kepler-codex.test.data")
+(def uri "datomic:mem://exocodex.test.data")
 
 
 (deftest earth-exists

@@ -1,4 +1,4 @@
-(ns kepler-codex.openid
+(ns exocodex.openid
     "A wrapper around the *openid4java* library."
 
     (:require

@@ -1,4 +1,4 @@
-(ns kepler-codex.view
+(ns exocodex.view
     "This module renders all sorts of pages and fragments. It acts as a Clojure
     wrapper around template requirements."
 

@@ -1,13 +1,13 @@
-(defproject kepler-codex "alpha"
+(defproject exocodex "alpha"
     :description
-        "The Kepler Codex is a web site to visualize potential exoplanets found
-        by NASA's Kepler mission."
+        "The Exocodex is a web site to visualize confirmed exoplanets or
+        exoplanet candidates."
 
-    :main kepler-codex.core
+    :main exocodex.core
 
     :plugins [[lein-ring "0.7.0"]]
 
-    :ring {:handler kepler-codex.core/app}
+    :ring {:handler exocodex.core/app}
 
     :dev-dependencies [[lein-marginalia "0.7.1"]]
 

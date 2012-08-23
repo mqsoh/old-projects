@@ -5,11 +5,11 @@
             :port 3000
             :join? false}
 
-    :session-name "kepler-codex-session"
+    :session-name "exocodex-session"
 
     :admin-identity
         "https://www.google.com/accounts/o8/id?id=AItOawlS7Q-SfuFC7pRtAv6G2cEJbKsyfGb0kJU"
 
     :datomic-uri
-        "datomic:dev://localhost/kepler-codex"
+        "datomic:dev://localhost/exocodex"
 }
