@@ -68,12 +68,21 @@
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/many}
 
+    ; Last update.
+    {:db/id #db/id[:db.part/db]
+     :db.install/_attribute :db.part/db
+
+     :db/ident :last-update
+     :db/doc "The last time something was updated."
+     :db/valueType :db.type/instant
+     :db/cardinality :db.cardinality/one}
+
     ; Status -- candidate, confirmed, or rejected.
     {:db/id #db/id[:db.part/db -1]
      :db.install/_attribute :db.part/db
 
      :db/ident :status
-     :db/doc "Status of a planet: 'candidate', 'confirmed', 'rejected'."
+     :db/doc "Status of a planet: 'candidate', 'studied', 'confirmed', 'rejected'."
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one}
 
@@ -81,9 +90,12 @@
      :db/ident :status/candidate}
 
     {:db/id #db/id[:db.part/db -3]
-     :db/ident :status/confirmed}
+     :db/ident :status/studied}
 
     {:db/id #db/id[:db.part/db -4]
+     :db/ident :status/confirmed}
+
+    {:db/id #db/id[:db.part/db -5]
      :db/ident :status/rejected}
 
 

@@ -1,5 +1,9 @@
 [
     {:db/id #db/id[:db.part/user]
+     :name "NASA Exoplanet Archive"
+     :last-update #inst "1900-01-01T00:00:00Z"}
+
+    {:db/id #db/id[:db.part/user]
      :name "Sol"
      :name/stellar "Sol"
      :loc/distance 0.0
@@ -22,46 +26,4 @@
     {:db/id #db/id[:db.part/user]
      :name "Earth"
      :link "http://en.wikipedia.org/wiki/Earth"}
-
-    ; Kepler-20 has both the first planet to be found with a radius smaller
-    ; than that of Earth and also the planet closest to that of Earth.
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20"
-     :name/stellar "Kepler-20"
-     :loc/distance 290.0
-     :loc/longitude 73.37702
-     :loc/latitude 14.573594}
-
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20"
-     :link "http://en.wikipedia.org/wiki/Kepler_20"}
-
-    ; Kepler-20e -- smaller than Earth!
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20e"
-     :name/stellar "Kepler-20"
-     :name/letter "e"
-     ; TODO: We don't know the orbital distance, but we know the temperature
-     ; according to the Wikipedia article. I thought the temperature was a
-     ; function of the stellar class and orbital distance, but I must be wrong.
-     :mass/earth 3.08
-     :radius/earth 0.868
-     :status :status/confirmed}
-
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20e"
-     :link "http://en.wikipedia.org/wiki/Kepler-20e"}
-
-    ; Kepler-20f -- closest radius of Earth! but way too much mass.
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20f"
-     :name/stellar "Kepler-20"
-     :name/letter "f"
-     :mass/earth 14.3 ; :(
-     :radius/earth 1.03 ; :D
-     :status :status/confirmed}
-
-    {:db/id #db/id[:db.part/user]
-     :name "Kepler-20f"
-     :link "http://en.wikipedia.org/wiki/Kepler-20f"}
 ]

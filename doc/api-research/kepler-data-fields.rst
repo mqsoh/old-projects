@@ -806,7 +806,7 @@ kepler_name
 
 kepoi_type
     KepOI Type (CANDIDATE, CANDIDATE-FOP (a candidate being studied by the
-    Kepler Mission Follow-up Observing PRogram), CONFIRMED, FALSE POSITIVE) ::
+    Kepler Mission Follow-up Observing Program), CONFIRMED, FALSE POSITIVE) ::
 
         This is a planet status.
 
