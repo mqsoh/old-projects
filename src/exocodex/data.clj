@@ -3,11 +3,14 @@
         [clojure.pprint]
         [clojure.java.io :only [resource]]
 
-        [datomic.api :only [q db] :as d])
+        [datomic.api :only [q db] :as d]
+    )
 
     (:require
         [clojure.string :as string]
-        [clojure.core.cache :as cache]))
+        [clojure.core.cache :as cache]
+        [exocodex.data.api :as api]
+    ))
 
 
 (def update-frequency (* 1 60 60 1000))
@@ -15,11 +18,11 @@
 (def update-log
     "I'm using this TTL cache only as a marker to indicate when data should be
     refreshed."
-    (cache/ttl-cache-factory {} :ttl update-frequency))
+    (atom (cache/ttl-cache-factory {} :ttl update-frequency)))
 
 
 (declare
-    data-recentness-check)
+    data-refresher)
 
 
 (defn init-database
@@ -58,7 +61,7 @@
     "Query based on a URI."
     [uri query]
 
-    (data-recentness-check uri)
+    (data-refresher uri)
     (q query (db (get-connection uri))))
 
 
@@ -66,7 +69,7 @@
     "Get a record based on its ID."
     [uri id]
 
-    (data-recentness-check uri)
+    (data-refresher uri)
     (-> (get-connection uri)
         (db)
         (d/entity id)))
@@ -93,15 +96,63 @@
 (defn cache-get
     "If cache-key is in the cache, return it. If not, call update-function and
     store it."
-    [store cache-key update-function]
+    [cache-key update-function]
 
-    (if (cache/has? store cache-key)
-        (cache/hit store cache-key)
-        (cache/miss store cache-key (update-function))))
+    (if (cache/has? @update-log cache-key)
+        (cache/hit @update-log cache-key)
+        (swap! update-log #(cache/miss % cache-key (update-function)))))
 
 
-(defn data-recentness-check
-    "Checks if it's time to refresh the data from the exoplanet archive. If it
-    is, it runs the update."
-    [datomic-uri]
-    )
+(defn data-refresher
+    "Provides an update-function to cache-get. Cache-get, combined with the
+    defined ttl in the cache, is what decides when (and how often) data is
+    updated from the exoplanet archive."
+    [uri & [exoplanets-file candidates-file]]
+
+    (letfn [(add-db-id [api-entity]
+                       (assoc api-entity :db/id #db/id[:db.part/user]))
+
+            (merger [fetch-fn]
+                    ; The doall is necessary here. I knew that 'map' was
+                    ; generating lazy sequences; I thought the conditions for
+                    ; evaluating them all were already met. I can't explain
+                    ; why -- ignorance! It keeps you on your toes.
+                    (doall
+                        (map
+                            #(d/transact (get-connection uri) [%])
+                            (map add-db-id (fetch-fn)))))]
+
+        (cache-get
+            :data-recent
+            (fn []
+                ; This doall is also necessary.
+                (doall (map merger [(if exoplanets-file
+                                 (partial api/fetch-exoplanets exoplanets-file)
+                                 api/fetch-exoplanets)
+
+                             (if candidates-file
+                                 (partial api/fetch-candidates candidates-file)
+                                 api/fetch-candidates)]))
+                true))))
+
+
+(defn get-confirmed-exoplanets
+    "Return a vector of all the planets that don't start with KOI, which is the
+    prefix of all the Kepler Objects of Interest in the candidates table."
+    [uri]
+
+    ; I think that there must be a way to do this with the Datomic query,
+    ; however, I'll review all this later. I want to get to some of the front end
+    ; visualizations.
+    (filter
+        #(not (.startsWith (:name %) "KOI"))
+        (query-entities uri '[:find ?p :where [?p :name]])))
+
+
+(defn get-candidates
+    "Return a list of all the Kepler objects of interest."
+    [uri]
+
+    (filter
+        #(.startsWith (:name %) "KOI")
+        (query-entities uri '[:find ?p :where [?p :name ?name]])))

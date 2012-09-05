@@ -83,10 +83,12 @@
 
 
 (defn home
-    [user-is-admin]
+    [user-is-admin exoplanets candidates]
     (skel "Home"
         (render {:template-name "pages/home"
-                 :user_is_admin user-is-admin})))
+                 :user_is_admin user-is-admin
+                 :exoplanets exoplanets
+                 :candidates candidates})))
 
 
 (defn error

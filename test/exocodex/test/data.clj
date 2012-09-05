@@ -20,7 +20,7 @@
                     '[:find ?name
                       :where
                           [?planet :name ?name]
-                          [?planet :name/stellar "Sol"]
+                          [?planet :name/stellar "Sun"]
                           [?planet :name/letter "a"]]))]
 
         (is (= "Earth" earth))))
@@ -32,9 +32,9 @@
                           :where
                               [?star :name ?name]
                               [?star :loc/distance _]
-                              [?star :name/stellar "Sol"]]))]
+                              [?star :name/stellar "Sun"]]))]
 
-        (is (= "Sol" sun))))
+        (is (= "Sun" sun))))
 
 
 (deftest lazy-retrieval
@@ -47,20 +47,27 @@
           earth (first entities)]
 
         (is (= (type entities) clojure.lang.LazySeq))
-        (is (= (:name/stellar earth) "Sol"))
+        (is (= (:name/stellar earth) "Sun"))
         (is (= (:name/letter earth) "a"))))
 
 
-(deftest caching
-    "Does caching work like I think it does?"
+(deftest full-data-set
+    (data/data-refresher uri
+        (resource "databases/exoplanets-sample.csv")
+        (resource "databases/keplercandidates-sample.csv"))
 
-    (let [mycache (cache/ttl-cache-factory {:thing :initialized} :ttl 500)
-          updater (fn [] :updated)]
+    (let [candidate (data/query-entity uri '[:find ?p :where [?p :name "KOI 469.01"]])]
+        (is (= (:name candidate) "KOI 469.01"))
+        (is (= (:status candidate) :status/candidate)))
 
-        (is (= (data/cache-get mycache :thing updater)
-               {:thing :initialized}))
+    (let [exoplanet (data/query-entity uri '[:find ?p :where [?p :name "Gliese 876c"]])]
+        (is (= (:name exoplanet) "Gliese 876c"))
+        (is (= (:mass/earth exoplanet) 260.0))))
 
-        (Thread/sleep 1000)
 
-        (is (= (data/cache-get mycache :thing updater)
-               {:thing :updated}))))
+(deftest confirmed-exoplanets
+    (is (= 790 (count (data/get-confirmed-exoplanets uri)))))
+
+
+(deftest candidates
+    (is (= 2924 (count (data/get-candidates uri)))))

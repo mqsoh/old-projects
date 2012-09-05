@@ -2,7 +2,7 @@ skel(title, body_class, body) ::= <<
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{title} | Kepler Codex</title>
+        <title>{title} | Exocodex</title>
         <link
             rel="stylesheet" type="text/css"
             href="/public/bootstrap/css/bootstrap.min.css" />
@@ -19,7 +19,7 @@ skel(title, body_class, body) ::= <<
             <div class="navbar-inner">
                 <div class="container">
                     <a class="brand" href="/">
-                        The Kepler Codex
+                        The Exocodex
                     </a>
                 </div>
             </div>

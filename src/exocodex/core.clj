@@ -26,7 +26,7 @@
         (resource-response (:uri request))
 
         #"^/$"
-        (pages/home request)
+        (pages/home request (:datomic-uri @config))
 
         #"^/login$"
         (pages/login request)

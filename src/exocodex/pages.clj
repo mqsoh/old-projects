@@ -3,9 +3,11 @@
     in exocodex.core."
 
     (:require
+        [exocodex.data :as data]
         [exocodex.openid :as openid]
+        [exocodex.response :as resp]
         [exocodex.view :as view]
-        [exocodex.response :as resp]))
+    ))
 
 
 (defn not-found []
@@ -14,9 +16,12 @@
 
 
 (defn home
-    [request]
+    [request datomic-uri]
     (resp/html-ok
-        (view/home false)))
+        (view/home
+            false
+            (data/get-confirmed-exoplanets datomic-uri)
+            (data/get-candidates datomic-uri))))
 
 
 (defn login

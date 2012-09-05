@@ -11,5 +11,5 @@
         "https://www.google.com/accounts/o8/id?id=AItOawlS7Q-SfuFC7pRtAv6G2cEJbKsyfGb0kJU"
 
     :datomic-uri
-        "datomic:dev://localhost/exocodex"
+        "datomic:free://localhost:4334/exocodex"
 }
