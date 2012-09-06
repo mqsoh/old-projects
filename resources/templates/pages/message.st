@@ -1,8 +1,0 @@
-message(title, message) ::= <<
-<div class="message">
-    <h1>{title}</h1>
-    <p>
-        {message}
-    </p>
-</div>
->>

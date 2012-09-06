@@ -15,7 +15,7 @@
         [org.clojure/clojure "1.4.0"]
         [ring "1.1.0"]
         [org.openid4java/openid4java "0.9.5"]
-        [org.antlr/stringtemplate "4.0.2"]
+        [hiccup "1.0.1"]
         [com.datomic/datomic-free "0.8.3479"]
         [org.clojure/core.cache "0.6.2"]
         [clj-http "0.5.3"]])

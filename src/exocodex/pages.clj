@@ -19,7 +19,6 @@
     [request datomic-uri]
     (resp/html-ok
         (view/home
-            false
             (data/get-confirmed-exoplanets datomic-uri)
             (data/get-candidates datomic-uri))))
 
@@ -27,14 +26,14 @@
 (defn login
     [request]
     (resp/html-ok
-        (view/skel-simple "Login" "pages/login")))
+        (view/login)))
 
 
 (defn login-post
     "Handles an OpenID authentication request."
     [request]
 
-    (if-let [openid-identity (get (:params request) "openid-identity")]
+    (if-let [openid-identity (get (:params request) "openid_identity")]
         ; Authenticate the user.
         (let [postback-url (str "http://" (get (:headers request) "host") "/login-postback")
               {auth-url :url, discovery :discovery} (openid/auth postback-url openid-identity)]
