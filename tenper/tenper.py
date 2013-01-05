@@ -1,118 +1,123 @@
 #!/usr/bin/python3.2
+"""Tenper is a tmux wrapper with support for Python virtualenv.
+
+It uses virtualenvwrappers conventions, so they'll work side-by-side.
+"""
 
 import argparse
-import collections
 import os
 import subprocess
+import sys
 
 
 editor = os.getenv('EDITOR')
 configs = os.path.join(os.path.expanduser('~'), '.tenper')
+virtualenv = os.path.join(os.path.expanduser('~'), '.virtualenvs')
+config_template = """session name: my session
+virtualenv: my project
+project root: ~/code/tenper
+windows:
+  - name: One
+    command: ls -l
+  - name: Two
+    command: ls /
+"""
 
 
-def create(env_name, config_file):
-    """Open an environment config in EDITOR."""
+def command_list(template, **kwargs):
+    """Split a command into an array (for subprocess).
 
-    os.makedirs(configs, exist_ok=True)
-    subprocess.call([editor, config_file])
+    >>> command_list('ls')
+    ['ls']
+    >>> command_list('ls /')
+    ['ls', '/']
+    >>> command_list('echo {message}', message='Hello, world.')
+    ['echo', 'Hello, world.']
 
+    Args:
+        template: A string that will be split on ' ' and will have the
+            remaining arguments to this function applied to the 'format' of
+            each segment.
 
-def edit(env_name, config_file):
-    """Open an environment config in EDITOR."""
+    Returns:
+        A list of strings.
+    """
 
-    if not os.path.exists(config_file):
-        return create(env_name, config_file)
-
-    subprocess.call([editor, config_file])
-
-
-def show():
-    """Print a list of environments to stdout."""
-
-    print('Available tenper environments:')
-    print()
-    for f in os.listdir(configs):
-        print('    ', f[0:-3])
+    return [part.format(**kwargs) for part in template.split(' ')]
 
 
-def start(env_name, config_file):
-    env = {}
-
-    with open(config_file) as f:
-        ast_object = compile(f.read(), config_file, mode='exec')
-        exec(ast_object, env)
-
-    session = env['session_name']
-    session_arg = '-s{}'.format(session)
-
-    # Short circuit for a previously existing session.
-    has_session = subprocess.call(['tmux', 'has-session', '-t', session])
-    if has_session == 0:
-        print('Session already exists; attaching...')
-        input()
-        subprocess.call(['tmux', '-2', 'attach-session', '-t', session])
-        return
-
-    subprocess.call(['tmux', 'new-session', '-d', session_arg])
-
-    for index, window in enumerate(env.get('windows', [])):
-        window_name, command = window
-        window_target = ':'.join([session, str(index)])
-
-        if index == 0:
-            subprocess.call(['tmux', 'rename-window', '-t', str(index), window_name])
-        else:
-            subprocess.call(['tmux', 'new-window', '-n', window_name, '-t', window_target])
-
-        if env.get('project_root'):
-            send(window_target, 'cd {}'.format(env['project_root']))
-
-        if env.get('before_all'):
-            send(window_target, env['before_all'])
-
-        send(window_target, command)
-
-    subprocess.call(['tmux', '-2', 'attach-session', '-t', session])
+def run(command, **kwargs):
+    """Run a command template (see command_list)."""
+    return subprocess.call(command_list(command, **kwargs))
 
 
-def send(window_target, command):
-    run = ['tmux', 'send-keys', '-t', window_target]
+def list_envs():
+    pass
 
-    if isinstance(command, str):
-        run.append(command)
-    else:
-        run.append(' '.join(command))
 
-    run.append('ENTER')
+def edit(env):
+    pass
 
-    subprocess.call(run)
+
+def rebuild(env):
+    pass
+
+
+def start(env):
+    pass
+
+
+def parse_args(args):
+    """Return a function and its arguments based on 'args'.
+
+    Args:
+        args: Probably never anything but sys.argv[1:].
+
+    Returns:
+        (callable, [...arguments])
+    """
+
+    parser = argparse.ArgumentParser(description=(
+        'A wrapper for tmux sessions and (optionally) virtualenv{,wrapper}. '
+        'Usage:\n'
+        '  tenper -l\n'
+        '  tenper -e new-environment\n'
+        '  tenper --rebuild-env some-env\n'
+        '  tenper some-env\n'))
+
+    parser.add_argument('--list', '-l', action='store_true', help=(
+        'List the available environments.'))
+    parser.add_argument('--edit', '-e', action='store_true', help=(
+        'Edit (or create) a new environment.'))
+    parser.add_argument('--rebuild-env', action='store_true', help=(
+        'If the environment uses virtualenv, rebuild it.'))
+    parser.add_argument('env', nargs='?', help=(
+        'An environment name.'))
+
+    parsed = parser.parse_args(args)
+
+    if parsed.list:
+        return (list_envs, [])
+
+    if not parsed.env:
+        raise Exception('You must provide an environment name')
+
+    if parsed.edit:
+        return (edit, [parsed.env])
+
+    if parsed.rebuild_env:
+        return (rebuild, [parsed.env])
+
+    if parsed.env:
+        return (start, [parsed.env])
+
+    # This description of the problem is rude (stupid); maybe this interface
+    # sucks.
+    raise Exception((
+        'You must provide an environment name and maybe a flag, too. Use -h '
+        'for help'))
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=(
-        'A tmux and virtualenvwrapper wrapper.'
-    ))
-    subparsers = parser.add_subparsers()
-
-    create_sp = subparsers.add_parser('create', help='Create a new tenper env.')
-    create_sp.add_argument('env_name', help='The name of an environment.')
-    create_sp.set_defaults(handler=create)
-
-    edit_sp = subparsers.add_parser('edit', help='Edit a tenper env.')
-    edit_sp.add_argument('env_name', help='The name of an environment.')
-    edit_sp.set_defaults(handler=edit)
-
-    start_sp = subparsers.add_parser('start', help='Start a tenper session.')
-    start_sp.add_argument('env_name', help='The name of an environment.')
-    start_sp.set_defaults(handler=start)
-
-    show_sp = subparsers.add_parser('show', help='List available tenper envs.')
-    show_sp.set_defaults(handler=show)
-
-    args = parser.parse_args()
-    try:
-        args.handler(
-            args.env_name,
-            os.path.join(configs, '{}.py'.format(args.env_name)))
-    except:
-        args.handler()
+    f, a = parse_args(sys.argv[1:])
+    f(*a)
