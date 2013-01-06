@@ -44,6 +44,10 @@ class TenperTests(unittest.TestCase):
         self.assertEqual(f, tenper.edit)
         self.assertEqual(a, ['foo'])
 
+        f, a = tenper.parse_args(['--delete', 'foo'])
+        self.assertEqual(f, tenper.delete)
+        self.assertEqual(a, ['foo'])
+
         f, a = tenper.parse_args(['--rebuild', 'bar'])
         self.assertEqual(f, tenper.rebuild)
         self.assertEqual(a, ['bar'])
