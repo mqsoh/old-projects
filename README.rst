@@ -10,6 +10,22 @@ permits concurrent usage of virtualenvwrapper.
 
 
 
+Installation
+============
+I registered it in the PyPi, so you can ::
+
+    pip install tenper
+    # ...or...
+    easy_install tenper
+
+Or clone the repo and install it with ::
+
+    python setup.py install
+    # ...or (without admin privileges)...
+    python setup.py install --user
+
+
+
 Usage
 =====
 

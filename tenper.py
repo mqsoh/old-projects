@@ -1,4 +1,4 @@
-#!/usr/bin/python3.2
+#!/usr/bin/env python
 """Tenper is a tmux wrapper with support for Python virtualenv.
 
 It uses virtualenvwrapper's conventions, so they'll work side-by-side.
@@ -159,9 +159,13 @@ def delete(env):
     virtualenv = os.path.join(virtualenvs, env)
 
     if os.path.exists(virtualenv):
-        resp = input((
-            'There\'s a virtualenv for this environment in {}. Do you want '
-            'to delete it? ').format(virtualenv))
+        prompt = (
+            'There\'s a virtualenv for this environment in {}. Do you want to '
+            'delete it? ').format(virtualenv)
+        try:
+            resp = raw_input(prompt)
+        except:
+            resp = input(prompt)
 
         if resp.strip() in ['yes', 'YES', 'y', 'Y']:
             shutil.rmtree(virtualenv)
@@ -191,8 +195,13 @@ def start(env):
 
     # Short circuit for a preexisting session.
     if run('tmux has-session -t {session}', session=config['session name']) == 0:
-        input('Session already exists: attaching. (Press any key to continue.)')
-        run('tmux -2 attach-session -r {session}', session=config['session name'])
+        prompt = 'Session already exists: attaching. (Press any key to continue.)'
+        try:
+            raw_input(prompt)
+        except:
+            input(prompt)
+
+        run('tmux -2 attach-session -t {session}', session=config['session name'])
         return
 
     # Start the session.
@@ -238,10 +247,10 @@ def start(env):
                 command='cd {}'.format(config['project root']))
 
             # Run the window command, if available.
-            if window.get('command'):
+            if pane:
                 run('tmux send-keys -t {pane_target} {command} ENTER',
                     pane_target=pane_target,
-                    command=window['command'])
+                    command=pane)
 
         if window.get('layout'):
             run('tmux select-layout -t {window_target} {layout}',
@@ -310,8 +319,3 @@ def parse_args(args):
     raise Exception((
         'You must provide an environment name and maybe a flag, too. Use -h '
         'for help'))
-
-
-if __name__ == '__main__':
-    f, a = parse_args(sys.argv[1:])
-    f(*a)
