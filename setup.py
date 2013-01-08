@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='tenper',
-    version='1.0',
+    version='1.01',
     description='A tmux session manager with optional virtualenv support.',
     long_description=(
         'Tenper is a tmux wrapper. It provides project-based tmux window/pane '
