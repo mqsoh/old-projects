@@ -1,1 +1,0 @@
-Add a list of session environment variables to the environment config. (I need this for DJANGO_SETTINGS_MODULE.)

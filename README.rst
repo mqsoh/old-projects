@@ -50,6 +50,11 @@ The template looks like this.::
     # directory.
     project root: $HOME
 
+    # Environment variables (only available inside the tmux session).
+    environment:
+        MYKEY: myvalue
+        PATH: $PATH:/foo/bar/baz
+
     windows:
       - name: One
         panes:
@@ -58,7 +63,7 @@ The template looks like this.::
       - name: Two
         # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
         # main-vertical, or tiled. You can also specify the layout string in the
-        # list-windows command (see man tmux's layout section).
+        # list-windows command (see the layout section section in tmux's man page).
         layout: main-vertical
         panes:
             - ls

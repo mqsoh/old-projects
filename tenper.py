@@ -9,6 +9,7 @@ The name is a corruption of gibberish:
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,11 @@ virtualenv:
 # directory.
 project root: $HOME
 
+# Environment variables (only available inside the tmux session).
+environment:
+    MYKEY: myvalue
+    PATH: $PATH:/foo/bar/baz
+
 windows:
   - name: One
     panes:
@@ -41,7 +47,7 @@ windows:
   - name: Two
     # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
     # main-vertical, or tiled. You can also specify the layout string in the
-    # list-windows command (see man tmux's layout section).
+    # list-windows command (see the layout section section in tmux's man page).
     layout: main-vertical
     panes:
         - ls
@@ -221,6 +227,23 @@ def start(env):
         run('tmux set-environment -t {session} venv {path}',
             session=session,
             path=virtualenv_path)
+
+    # Add project specific environment variables.
+    if config.get('environment'):
+        def interpret_shell_vars(match):
+            return os.environ.get(match.group(1), '')
+
+        for k, v in config['environment'].iteritems():
+            # Evaluate environment vars embedded in the config.
+            v = re.sub(
+                r'\$([a-zA-Z][a-zA-Z0-9_]*)',
+                lambda match: os.environ.get(match.group(1), ''),
+                v)
+
+            run('tmux set-environment -t {session} {key} {value}',
+                session=session,
+                key=k,
+                value=v)
 
     for index, window in enumerate(config['windows']):
         window_target = ':'.join([session, str(index)])
