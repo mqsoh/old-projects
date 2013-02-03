@@ -319,7 +319,6 @@ def parse_args(args):
 
     else:
         # Subcommand.
-
         subparsers = parser.add_subparsers(dest='command')
 
         def mksubparser(name, help_text):
@@ -337,9 +336,36 @@ def parse_args(args):
 
     if parsed.project_name == 'list':
         handler = list_envs
+
+    elif parsed.project_name == 'zsh-completion':
+        handler = zsh_completion
+
     elif hasattr(parsed, 'command'):
         handler = globals()[parsed.command]
+
     else:
         handler = start
 
     return (handler, project)
+
+
+def zsh_completion(*args):
+    """Generate a zsh compdef call for tenper.
+
+    This can be used in a .zshrc to provide tab completion by adding the
+    following line.
+
+        compdef "_arguments '*: :($(tenper zsh-completion))'" tenper
+
+    Returns:
+        A string like:
+            edit list delete rebuild foo bar baz
+    """
+    args = ['list', 'edit', 'rebuild', 'delete']
+
+    if os.path.exists(configs):
+        for f in os.listdir(configs):
+            if f.endswith('.yml'):
+                args.append(f[0:-4])
+
+    print(' '.join(args))

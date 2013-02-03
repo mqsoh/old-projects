@@ -101,6 +101,16 @@ project and then rebuild it with::
 
 
 
+Tab completion.
+===============
+
+If you're using zsh, to can add the following line after you've loaded compinit
+in your .zshrc. ::
+
+    compdef "_arguments '*: :($(tenper zsh-completion))'" tenper
+
+
+
 License
 =======
 Copyright (c) 2013 Mason Staugler
