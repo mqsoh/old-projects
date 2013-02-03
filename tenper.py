@@ -207,6 +207,13 @@ def start(env):
     # Start the session.
     run('tmux new-session -d -s {session}', session=config['session name'])
 
+    # Resize the left status area so that the full name of the environment will
+    # fit.
+    run('tmux set-option -t {session} status-left-length {length}',
+        session=config['session name'],
+        # There's brackets surrounding the name, thus: + 2.
+        length=len(config['session name'])+2)
+
     # Provide a venv environment variable. It's possible this should be named
     # something more unique, but since we'll be using it to manually run
     # 'source $venv', I'm opting for brevity.

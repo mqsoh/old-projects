@@ -1,3 +1,1 @@
-Increase the size of the 'leftstatus' (or whatever it's called) to allow for longer environment names.
-
 Add a list of session environment variables to the environment config. (I need this for DJANGO_SETTINGS_MODULE.)
