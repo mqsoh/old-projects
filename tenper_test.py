@@ -36,28 +36,22 @@ class TenperTests(unittest.TestCase):
 
 
     def test_parse_args(self):
-        f, a = tenper.parse_args(['-l'])
-        self.assertEqual(f, tenper.list_envs)
-        self.assertEqual(a, [])
-
-        f, a = tenper.parse_args(['--edit', 'foo'])
+        f, a = tenper.parse_args(['edit', 'foo'])
         self.assertEqual(f, tenper.edit)
-        self.assertEqual(a, ['foo'])
+        self.assertEqual(a, 'foo')
 
-        f, a = tenper.parse_args(['--delete', 'foo'])
-        self.assertEqual(f, tenper.delete)
-        self.assertEqual(a, ['foo'])
-
-        f, a = tenper.parse_args(['--rebuild', 'bar'])
+        f, a = tenper.parse_args(['rebuild', 'bar'])
         self.assertEqual(f, tenper.rebuild)
-        self.assertEqual(a, ['bar'])
+        self.assertEqual(a, 'bar')
+
+        f, a = tenper.parse_args(['delete', 'foo'])
+        self.assertEqual(f, tenper.delete)
+        self.assertEqual(a, 'foo')
+
+        f, a = tenper.parse_args(['list'])
+        self.assertEqual(f, tenper.list_envs)
+        self.assertEqual(a, 'list')
 
         f, a = tenper.parse_args(['foobar'])
         self.assertEqual(f, tenper.start)
-        self.assertEqual(a, ['foobar'])
-
-        with self.assertRaises(Exception):
-            tenper.parse_args([])
-
-        with self.assertRaises(Exception):
-            tenper.parse_args(['-e'])
+        self.assertEqual(a, 'foobar')

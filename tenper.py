@@ -125,7 +125,7 @@ def confirm_virtualenv(config, delete_first=False):
         dir=path)
 
 
-def list_envs():
+def list_envs(*args):
     """Print a list of the available yaml file names to stdout."""
 
     print('Available environments:')
@@ -277,45 +277,39 @@ def parse_args(args):
     parser = argparse.ArgumentParser(description=(
         'A wrapper for tmux sessions and (optionally) virtualenv{,wrapper}. '
         'Usage:\n'
-        '  tenper -l\n'
-        '  tenper -e new-environment\n'
-        '  tenper --rebuild-env some-env\n'
-        '  tenper some-env\n'))
+        '    tenper list\n'
+        '    tenper edit my-project\n'
+        '    tenper rebuild my-project\n'
+        '    tenper delete my-project\n'
+        '    tenper my-project\n'))
 
-    parser.add_argument('--list', '-l', action='store_true', help=(
-        'List the available environments.'))
-    parser.add_argument('--edit', '-e', action='store_true', help=(
-        'Edit (or create) a new environment.'))
-    parser.add_argument('--delete', '-d', action='store_true', help=(
-        'Delete an environment. You\'ll be prompted to delete a virtualenv if '
-        'it exists.'))
-    parser.add_argument('--rebuild-env', action='store_true', help=(
-        'If the environment uses virtualenv, rebuild it.'))
-    parser.add_argument('env', nargs='?', help=(
-        'An environment name.'))
+    if len(args) == 1:
+        # Either 'list' or a project name.
+        parser.add_argument('project_name')
+
+    else:
+        # Subcommand.
+
+        subparsers = parser.add_subparsers(dest='command')
+
+        def mksubparser(name, help_text):
+            sp = subparsers.add_parser(name, help=help_text)
+            sp.add_argument('project_name')
+
+        mksubparser('edit', 'Edit a project\'s configuration.')
+        mksubparser('rebuild', 'Delete an existing virtualenv and start a new one.')
+        mksubparser('delete', 'Delete a project\'s virtualenv and configuration.')
 
     parsed = parser.parse_args(args)
 
-    if parsed.list:
-        return (list_envs, [])
+    handler = None
+    project = parsed.project_name if parsed.project_name else None
 
-    if not parsed.env:
-        raise Exception('You must provide an environment name')
+    if parsed.project_name == 'list':
+        handler = list_envs
+    elif hasattr(parsed, 'command'):
+        handler = globals()[parsed.command]
+    else:
+        handler = start
 
-    if parsed.edit:
-        return (edit, [parsed.env])
-
-    if parsed.delete:
-        return (delete, [parsed.env])
-
-    if parsed.rebuild_env:
-        return (rebuild, [parsed.env])
-
-    if parsed.env:
-        return (start, [parsed.env])
-
-    # This description of the problem is rude (stupid); maybe this interface
-    # sucks.
-    raise Exception((
-        'You must provide an environment name and maybe a flag, too. Use -h '
-        'for help'))
+    return (handler, project)

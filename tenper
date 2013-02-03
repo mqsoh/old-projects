@@ -5,4 +5,4 @@ import tenper
 
 
 f, a = tenper.parse_args(sys.argv[1:])
-f(*a)
+f(a)
