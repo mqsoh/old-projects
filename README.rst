@@ -104,21 +104,21 @@ project and then rebuild it with::
 Tab completion.
 ===============
 
-If you're using zsh, to can add the following line after you've loaded compinit
-in your .zshrc. ::
+Zsh
+---
 
-    compdef "_arguments '*: :($(tenper zsh-completion))'" tenper
+You can add the following line after you've loaded compinit in your .zshrc. ::
 
+    compdef "_arguments '*: :($(tenper completions))'" tenper
 
-To enable bash completion
--------------------------
-tenper ships with support for bash completion, to use it you must source the
-provided ``tenper-completion.sh`` in your ``~.bashrc`` or place it into some
-systemwide location for completion like ``/etc/bash_completion.d/`` under arch
-linux.
+Bash
+----
 
-After sourcing the ``tenper-completion.sh`` file type ``tenper`` and hit
-``<TAB>`` and complete like a pro.
+Tenper will install ``tenper-completion.sh`` to a bin directory, so you can
+enable *bash** completion by sourcing it. ::
+
+    source $(which tenper-completion.sh)
+
 
 License
 =======

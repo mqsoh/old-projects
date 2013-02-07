@@ -6,18 +6,11 @@
 # Author: Martin Ortbauer, mortbauer@gmail.com
 # Notes: inspired by the git and hg bash completion files
 
-_tenper_commands()
+_tenper_complete()
 {
     local commands
-    commands="list edit del rebuild start"
+    commands="list edit del rebuild start $(tenper list)"
     COMPREPLY=(${COMPREPLY[@]:-} $(compgen -W '$commands' -- "$cur"))
-}
-
-_tenper_envs()
-{
-    local envs
-    envs="$(tenper list)"
-    COMPREPLY=(${COMPREPLY[@]:-} $(compgen -W '$envs' -- "$cur"))
 }
 
 _tenper()
@@ -36,39 +29,16 @@ _tenper()
     # (first non-option argument that doesn't follow a global option that
     #  receives an argument)
     for ((i=1; $i<=$COMP_CWORD; i++)); do
-	if [[ ${COMP_WORDS[i]} != -* ]]; then
-	    if [[ ${COMP_WORDS[i-1]} != @($global_args) ]]; then
-		cmd="${COMP_WORDS[i]}"
-		cmd_index=$i
-		break
-	    fi
-	fi
+    if [[ ${COMP_WORDS[i]} != -* ]]; then
+        if [[ ${COMP_WORDS[i-1]} != @($global_args) ]]; then
+        cmd="${COMP_WORDS[i]}"
+        cmd_index=$i
+        break
+        fi
+    fi
     done
 
-    if [ -z "$cmd" ] || [ $COMP_CWORD -eq $i ]; then
-        _tenper_commands
-        return
-    fi
-
-    # complete subcommands with envs
-    case "$cmd" in
-        edit)
-            _tenper_envs
-            return
-        ;;
-        del)
-            _tenper_envs
-            return
-        ;;
-        rebuild)
-            _tenper_envs
-            return
-        ;;
-        start)
-            _tenper_envs
-            return
-        ;;
-    esac
+    _tenper_complete
 }
 
 complete -o bashdefault -o default -F _tenper tenper

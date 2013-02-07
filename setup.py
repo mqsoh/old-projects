@@ -13,6 +13,6 @@ setup(
     author_email='mason@staugler.net',
     url='https://github.com/mqsoh/tenper',
     py_modules=['tenper'],
-    scripts=['tenper'],
+    scripts=['tenper', 'tenper-completion.sh'],
     license='MIT license',
 )

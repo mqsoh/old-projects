@@ -134,13 +134,10 @@ def confirm_virtualenv(config, delete_first=False):
 def list_envs(*args):
     """Print a list of the available yaml file names to stdout."""
 
-    print('Available environments:')
-    if not os.path.exists(configs):
-        print('    None.')
-    else:
+    if os.path.exists(configs):
         for f in os.listdir(configs):
             if f.endswith('.yml'):
-                print('    {}'.format(f[0:-4]))
+                print(f[0:-4])
 
 
 def edit(env):
@@ -337,8 +334,8 @@ def parse_args(args):
     if parsed.project_name == 'list':
         handler = list_envs
 
-    elif parsed.project_name == 'zsh-completion':
-        handler = zsh_completion
+    elif parsed.project_name == 'completions':
+        handler = completions
 
     elif hasattr(parsed, 'command'):
         handler = globals()[parsed.command]
@@ -349,16 +346,16 @@ def parse_args(args):
     return (handler, project)
 
 
-def zsh_completion(*args):
-    """Generate a zsh compdef call for tenper.
+def completions(*args):
+    """Generate available completions.
 
-    This can be used in a .zshrc to provide tab completion by adding the
-    following line.
+    This is used in tenper-completion.sh and can be used in a .zshrc to provide
+    tab completion by adding the following line.
 
-        compdef "_arguments '*: :($(tenper zsh-completion))'" tenper
+        compdef "_arguments '*: :($(tenper completions))'" tenper
 
     Returns:
-        A string like:
+        A string of the available commands and current environments, e.g.:
             edit list delete rebuild foo bar baz
     """
     args = ['list', 'edit', 'rebuild', 'delete']
