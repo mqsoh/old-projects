@@ -248,7 +248,7 @@ def start(env):
                 window_target=window_target,
                 name=window['name'])
         else:
-            run('tmux new-window -t {window_target} -n {name}',
+            run('tmux new-window -d -t {window_target} -n {name}',
                 window_target=window_target,
                 name=window['name'])
 
