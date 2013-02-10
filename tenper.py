@@ -208,7 +208,7 @@ def start(env):
         return
 
     # Start the session.
-    run('tmux new-session -d -s {session}', session=config['session name'])
+    run('tmux new-session -d -s {session}', session=session)
 
     # Resize the left status area so that the full name of the environment will
     # fit.
@@ -239,21 +239,52 @@ def start(env):
                 key=k,
                 value=v)
 
-    for index, window in enumerate(config['windows']):
-        window_target = ':'.join([session, str(index)])
+    # Base index
+    # ----------
+    # The first window won't have the environment variables set with
+    # set-environment. We need to create a new window, remove the initial
+    # window and move the new one to the old place. There's a base-index option
+    # that isn't showing up for me in the show-options command so I will use
+    # list-windows and pull the index off the first line.
+    base_index = int(
+        subprocess.check_output(
+            'tmux list-windows -t {session}'.format(session=session),
+            shell=True).split(':')[0])
 
-        # Create the window (or rename the first window).
+    for index, window in enumerate(config['windows']):
+        window_target = ':'.join([session, str(base_index + index)])
+
+        # If this is the first window, we need to kill the initial window and
+        # move this one to base_index.
         if index == 0:
-            run('tmux rename-window -t {window_target} {name}',
-                window_target=window_target,
+            base_target = ':'.join([session, str(base_index)])
+            temp_target = ':'.join([session, str(base_index + 1)])
+
+            run('tmux new-window -d -t {temp_target} -n {name}',
+                temp_target=temp_target,
                 name=window['name'])
+
+            run('tmux kill-window -t {base_target}',
+                base_target=base_target)
+
+            run('tmux move-window -s {temp_target} -t {base_target}',
+                temp_target=temp_target,
+                base_target=base_target)
         else:
+            # Create the window (or rename the first window).
             run('tmux new-window -d -t {window_target} -n {name}',
                 window_target=window_target,
                 name=window['name'])
 
+        # Panes can also have a base index so we need to check it with the same
+        # method used on windows.
+        base_pindex = int(
+            subprocess.check_output(
+                'tmux list-panes -t {window_target}'.format(window_target=window_target),
+                shell=True).split(':')[0])
+
         for pindex, pane in enumerate(window.get('panes', [])):
-            pane_target = '{}.{}'.format(window_target, pindex)
+            pane_target = '{}.{}'.format(window_target, str(base_pindex + pindex))
 
             if pindex != 0:
                 run('tmux split-window -t {window_target}.0',
@@ -281,8 +312,9 @@ def start(env):
                 window_target=window_target,
                 layout=window['layout'])
 
-        run('tmux select-pane -t {window_target}.0',
-            window_target=window_target)
+        run('tmux select-pane -t {window_target}.{base_pindex}',
+            window_target=window_target,
+            base_pindex=base_pindex)
 
     run('tmux -2 attach-session -t {session}',
         session=session)
