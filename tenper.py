@@ -227,9 +227,6 @@ def start(env):
 
     # Add project specific environment variables.
     if config.get('environment'):
-        def interpret_shell_vars(match):
-            return os.environ.get(match.group(1), '')
-
         for k, v in config['environment'].iteritems():
             # Evaluate environment vars embedded in the config.
             v = re.sub(
