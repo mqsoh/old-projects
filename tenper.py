@@ -12,7 +12,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 
 import yaml
 
@@ -116,7 +115,9 @@ def confirm_virtualenv(config, delete_first=False):
     if not config.get('virtualenv'):
         return
 
-    path = os.path.join(virtualenvs, config['session name'])
+    
+    custom_path = config['virtualenv'].get("path", None)
+    path = os.path.expandvars(custom_path) if custom_path else os.path.join(virtualenvs, config['session name'])
 
     # Short circuit: virtualenv exists and we're not deleting it.
     if os.path.exists(path) and not delete_first:
@@ -127,7 +128,8 @@ def confirm_virtualenv(config, delete_first=False):
 
     run('virtualenv -p {python_binary} {site_packages} {dir}',
         python_binary=config['virtualenv'].get('python binary', '/usr/bin/python'),
-        site_packages='--system-site-packages' if config['virtualenv'].get('site packages?', False) else '--no-site-packages',
+        site_packages='--system-site-packages' if config['virtualenv'].get('site packages?', False) \
+            else '--no-site-packages',
         dir=path)
 
 
@@ -135,9 +137,9 @@ def list_envs(*args):
     """Print a list of the available yaml file names to stdout."""
 
     if os.path.exists(configs):
-        for f in os.listdir(configs):
-            if f.endswith('.yml'):
-                print(f[0:-4])
+        args = [f[0:-4] for f in os.listdir(configs) if f.endswith('.yml')]
+        for yml in args:
+            print(yml)
 
 
 def edit(env):
@@ -167,7 +169,7 @@ def delete(env):
             'delete it? ').format(virtualenv)
         try:
             resp = raw_input(prompt)
-        except:
+        except (ValueError, EOFError):
             resp = input(prompt)
 
         if resp.strip() in ['yes', 'YES', 'y', 'Y']:
@@ -180,7 +182,8 @@ def delete(env):
     try:
         # Clean up after ourselves.
         os.rmdir(configs)
-    except: pass
+    except OSError: 
+        pass
 
 
 def rebuild(env):
@@ -194,14 +197,19 @@ def start(env):
     confirm_virtualenv(config)
     session = config['session name']
     virtualenv = config.get('virtualenv', None)
-    virtualenv_path = os.path.join(virtualenvs, session, 'bin', 'activate') if virtualenv else None
-
+    virtualenv_path = None if not virtualenv else \
+        os.path.expandvars(
+            os.path.join(config['virtualenv'].get('path', None) or os.path.join(virtualenvs, session),
+                         'bin',
+                         'activate')
+        )
+ 
     # Short circuit for a preexisting session.
     if run('tmux has-session -t {session}', session=config['session name']) == 0:
         prompt = 'Session already exists: attaching. (Press any key to continue.)'
         try:
             raw_input(prompt)
-        except:
+        except (ValueError, EOFError):
             input(prompt)
 
         run('tmux -2 attach-session -t {session}', session=config['session name'])
@@ -210,20 +218,17 @@ def start(env):
     # Start the session.
     run('tmux new-session -d -s {session}', session=session)
 
+    # Set session default path
+    run('tmux set-option -t {session} default-path {path}',
+        session=session,
+        path=os.path.expandvars(config['project root']))
+
     # Resize the left status area so that the full name of the environment will
     # fit.
     run('tmux set-option -t {session} status-left-length {length}',
         session=config['session name'],
         # There's brackets surrounding the name, thus: + 2.
         length=len(config['session name'])+2)
-
-    # Provide a venv environment variable. It's possible this should be named
-    # something more unique, but since we'll be using it to manually run
-    # 'source $venv', I'm opting for brevity.
-    if virtualenv:
-        run('tmux set-environment -t {session} venv {path}',
-            session=session,
-            path=virtualenv_path)
 
     # Add project specific environment variables.
     if config.get('environment'):
@@ -295,11 +300,6 @@ def start(env):
                 run('tmux send-keys -t {pane_target} {command} ENTER',
                     pane_target=pane_target,
                     command='source {}'.format(virtualenv_path))
-
-            # Go to the project directory.
-            run('tmux send-keys -t {pane_target} {command} ENTER',
-                pane_target=pane_target,
-                command='cd {}'.format(config['project root']))
 
             # Run the window command, if available.
             if pane:
