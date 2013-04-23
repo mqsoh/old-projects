@@ -28,6 +28,7 @@ session name: {env}
 virtualenv:
     python binary: /usr/bin/python
     site packages?: false
+    path: $HOME/.venv #optional path to virtualenv
 
 # When starting a tenper session, all windows and panes will be changed to this
 # directory.
