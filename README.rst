@@ -45,6 +45,7 @@ The template looks like this.::
     virtualenv:
         python binary: /usr/bin/python
         site packages?: false
+        path: $HOME/.venv #optional virtualenv path
 
     # When starting a tenper session, all windows and panes will be changed to this
     # directory.
