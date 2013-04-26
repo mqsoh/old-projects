@@ -15,4 +15,5 @@ setup(
     py_modules=['tenper'],
     scripts=['tenper', 'tenper-completion.sh'],
     license='MIT license',
+    install_requires=['pyyaml==3.10'],
 )
