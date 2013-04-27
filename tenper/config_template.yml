@@ -1,0 +1,34 @@
+# Shows up in 'tmux list-sessions' and on the left side of the status bar.
+session name: {env}
+
+# Uncomment the following to manage a virtualenv for this session. If the
+# virtualenv doesn't exist at <base path>/<session name> a new one will be
+# created.
+#virtualenv:
+#    base path: $HOME/.virtualenvs
+#    python binary: /usr/bin/python
+#    site packages?: false
+
+# When starting a tenper session, all windows and panes will be changed to this
+# directory.
+project root: $HOME
+
+# Environment variables (only available inside the tmux session).
+environment:
+    MYHOME: $HOME
+
+windows:
+  - name: One
+    panes:
+      - ls -l
+
+  - name: Two
+    # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
+    # main-vertical, or tiled. You can also specify the layout string in the
+    # list-windows command (see the layout section section in tmux's man page).
+    layout: main-vertical
+    panes:
+      - ls
+      - vim
+      - top
+

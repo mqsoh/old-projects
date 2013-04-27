@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 import yaml
 
@@ -405,3 +406,8 @@ def completions(*args):
                 args.append(f[0:-4])
 
     print(' '.join(args))
+
+
+def main(*args, **kwargs):
+    handler, argument = parse_args(sys.argv[1:])
+    handler(argument)
