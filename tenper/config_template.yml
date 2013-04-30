@@ -5,9 +5,8 @@ session name: {env}
 # virtualenv doesn't exist at <base path>/<session name> a new one will be
 # created.
 #virtualenv:
-#    base path: $HOME/.virtualenvs
-#    python binary: /usr/bin/python
-#    site packages?: false
+#  python binary: /usr/bin/python
+#  site packages?: false
 
 # When starting a tenper session, all windows and panes will be changed to this
 # directory.
@@ -15,7 +14,7 @@ project root: $HOME
 
 # Environment variables (only available inside the tmux session).
 environment:
-    MYHOME: $HOME
+  MYHOME: $HOME
 
 windows:
   - name: One
@@ -31,4 +30,3 @@ windows:
       - ls
       - vim
       - top
-
