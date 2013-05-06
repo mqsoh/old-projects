@@ -13,6 +13,13 @@ setup(
     author_email='mason@staugler.net',
     url='https://github.com/mqsoh/tenper',
     license='MIT license',
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+    ],
 
     install_requires=['pyyaml'],
     packages=find_packages(exclude=['*_tests.py']),
