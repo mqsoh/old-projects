@@ -9,9 +9,9 @@ from . import core
 def _confirm_virtualenv(env):
     """Makes sure we have a virtualenv installed for env."""
 
-    directory = core.configured('{virtualenv_path}')
+    directory = core.configured('virtualenv_path')
 
-    if (core._run_context.get('virtualenv_configured') and
+    if (core.configured('virtualenv_configured') and
         directory and
         not os.path.exists(directory)):
 
@@ -50,11 +50,11 @@ def _remove_virtualenv(env):
     """Deletes a possibly extant virtualenv and rebuild it."""
 
     # Short circuit; no virtualenv configured.
-    if not core._run_context['virtualenv_configured']:
+    if not core.configured('virtualenv_configured'):
         print('No virtualenv configured for {}.'.format(env))
         return
 
-    directory = core.configured('{virtualenv_path}')
+    directory = core.configured('virtualenv_path')
 
     if not os.path.exists(directory):
         print('No virtualenv created for {}.'.format(env))
@@ -75,7 +75,7 @@ def delete(env):
 
     _remove_virtualenv(env)
 
-    file_name = core.configured('{config_file_name}')
+    file_name = core.configured('config_file_name')
     directory = os.path.dirname(file_name)
 
     if os.path.exists(file_name):
@@ -86,7 +86,7 @@ def delete(env):
 
     # Clean up the .tenper directory is it's no longer used.
     try:
-        os.rmdir(os.path.dirname(core.configured('{config_file_name}')))
+        os.rmdir(os.path.dirname(core.configured('config_file_name')))
         print('Cleaned up tenper config directory at {}.'.format(directory))
     except OSError:
         pass
@@ -95,7 +95,7 @@ def delete(env):
 def edit(env):
     """Edit (or create) an environment's configuration."""
 
-    config_file_name = core.configured('{config_file_name}')
+    config_file_name = core.configured('config_file_name')
 
     if not os.path.exists(config_file_name):
         config.create(config_file_name, env)
@@ -107,11 +107,11 @@ def edit(env):
 def list():
     """Prints the configuration files in {config_path} to stdout."""
 
-    directory = core.configured('{config_path}')
+    directory = core.configured('config_path')
 
     # Short circuit; no configuration.
     if not os.path.exists(directory):
-        print(core.configured(
+        print(core.configured_string(
             'You have no environments; {config_path} is empty.'))
         return
 
@@ -145,19 +145,19 @@ def start(env):
     core.run('{tmux_command} new-session -d -s {session_name}')
     core.run('{tmux_command} set-option -t {session_name} default-path {project_root}')
     core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
-                str(len(core.configured('{session_name}'))))
+                str(len(core.configured('session_name'))))
 
     # TODO(mason): Another instance where this configuration method isn't
     # complete.
-    if core._run_context.get('environment'):
-        for k, v in core._run_context['environment'].items():
+    if core.configured('environment'):
+        for k, v in core.configured('environment').items():
             with core.run_context(key=k, value=os.path.expandvars(v)):
                 core.run(('{tmux_command} set-environment -t {session_name} '
                           '{key} {value}'))
 
     base_window_index, base_pane_index = _query_base_indeces()
 
-    for window_index, window in enumerate(core._run_context.get('windows', [])):
+    for window_index, window in enumerate(core.configured('windows', [])):
         with core.run_context(window_index=base_window_index+window_index):
             core.run(('{tmux_command} new-window -d -k -t '
                       '{session_name}:{window_index} -n {window_name}'),
@@ -170,7 +170,7 @@ def start(env):
                         core.run(('{tmux_command} split-window -t '
                                   '{session_name}:{window_index}.{previous_pane_index}'))
 
-                    if core._run_context.get('virtualenv_configured'):
+                    if core.configured('virtualenv_configured'):
                         core.run(('{tmux_command} send-keys -t '
                                   '{session_name}:{window_index}.{pane_index} '
                                   'source {virtualenv_path}/bin/activate '

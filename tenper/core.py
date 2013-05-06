@@ -66,9 +66,16 @@ def run_context(**kwargs):
     _run_context = old_run_context
 
 
-def configured(string):
+def configured_string(string):
     """Returns 'string' formatted with the run context."""
     return string.format(**_run_context)
+
+
+def configured(key, default=None):
+    """Returns a configuration parameter."""
+    # This function is a little silly. I'm eliminating the references to
+    # core._run_context in the other modules.
+    return _run_context.get(key, default)
 
 
 def run(command, **kwargs):
@@ -169,7 +176,7 @@ def main(*args, **kwargs):
         command.list()
 
     else:
-        config_file_name = os.path.join(_run_context['config_path'],
+        config_file_name = os.path.join(configured('config_path'),
                                         '{}.yml'.format(arguments.project_name))
 
         with run_context(**config.load(config_file_name)):

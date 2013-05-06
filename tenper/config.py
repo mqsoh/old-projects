@@ -111,7 +111,7 @@ def load(file_name):
             site_packages = '--system-site-packages'
 
         d.update({'virtualenv_configured': True,
-                  'virtualenv_path': os.path.join(core._run_context['virtualenvs_path'], d['session_name']),
+                  'virtualenv_path': os.path.join(core.configured('virtualenvs_path'), d['session_name']),
                   'virtualenv_python_binary': _get_virtualenv(config, 'python binary'),
                   'virtualenv_use_site_packages': site_packages})
 
