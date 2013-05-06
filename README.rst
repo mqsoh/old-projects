@@ -102,6 +102,27 @@ project and then rebuild it with::
 
 
 
+Configuration
+=============
+You can set the following environment variables.
+
+- TENPER_VERBOSE
+    Set to 'true' if you want to see the commands we execute.
+
+- TENPER_CONFIGS
+    The path to where you want the configuration files stored. Defaults to
+    ~/.tenper.
+
+- TENPER_VIRTUALENVS
+    The path to where you keep your virtualenvs. Defaults to
+    virtualenvwrapper's default of ~/.virtualenvs.
+
+- TENPER_TMUX_COMMAND
+    Defaults to 'tmux'. Try 'tmux -2' if you want 256 colors without TERM
+    wrangling.
+
+
+
 Tab completion.
 ===============
 
