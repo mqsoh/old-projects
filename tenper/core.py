@@ -5,11 +5,13 @@ The name is a corruption of gibberish:
     tmuxvirtualenvwrapper -> tenvpapper -> tenper.
 
 Environment variables:
+    TENPER_VERBOSE: Set to 'true' if you want to see the commands we execute.
     TENPER_CONFIGS: The path to where you want the configuration files stored.
         Defaults to ~/.tenper.
     TENPER_VIRTUALENVS: The path to where you keep your virtualenvs. Defaults
         to virtualenvwrapper's default of ~/.virtualenvs.
-    TENPER_TMUX_COMMAND: Defaults to 'tmux'.
+    TENPER_TMUX_COMMAND: Defaults to 'tmux'. Try 'tmux -2' if you want 256
+        colors without TERM wrangling.
 """
 
 import argparse
@@ -26,13 +28,15 @@ from . import command
 from . import config
 
 
+_print_commands = os.getenv('TENPER_VERBOSE', 'false') == 'true'
+
 _run_context = {
     'editor': os.getenv('EDITOR'),
     'config_path': os.getenv('TENPER_CONFIGS') or \
         os.path.join(os.path.expanduser('~'), '.tenper'),
     'virtualenvs_path': os.getenv('TENPER_VIRTUALENVS') or \
         os.path.join(os.path.expanduser('~'), '.virtualenvs'),
-    'tmux_command': os.getenv('TENPER_TMUX_COMMAND') or 'tmux',
+    'tmux_command': os.getenv('TENPER_TMUX_COMMAND', 'tmux'),
 
     # These are the YAML config properties we'll want to use in the subprocess
     # calls.
@@ -98,12 +102,23 @@ def run(command, **kwargs):
     """
 
     formatting = dict(list(_run_context.items()) + list(kwargs.items()))
+    command_list = []
 
-    print('* {}'.format(command.format(**formatting)))
+    # The specific check for the tmux executable allows the
+    # TENPER_TMUX_COMMAND to contain arguments. I always use tmux -2 to
+    # force 256 colors because I don't like the TERM wrangling usually
+    # advised.
+    for part in command.split(' '):
+        if part == '{tmux_command}':
+            command_list.extend(_run_context['tmux_command'].split(' '))
+        else:
+            command_list.append(part.format(**formatting))
+
+    if _print_commands:
+        print('* {}'.format(' '.join(command_list)))
 
     try:
-        output = subprocess.check_output(
-            [part.format(**formatting) for part in command.split(' ')])
+        output = subprocess.check_output(command_list)
         ok = True
     except subprocess.CalledProcessError as e:
         output = e.output
@@ -156,6 +171,7 @@ def parse_args(args):
     if parsed_args.project_name == 'list':
         parsed_args.command = 'list'
         del parsed_args.project_name
+
 
     return parsed_args
 
