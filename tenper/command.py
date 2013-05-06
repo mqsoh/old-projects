@@ -6,6 +6,13 @@ from . import config
 from . import core
 
 
+def _attach_or_switch():
+    if os.getenv('TMUX'):
+        core.run('{tmux_command} switch-client -t {session_name}')
+    else:
+        core.run('{tmux_command} attach-session -t {session_name}')
+
+
 def _confirm_virtualenv(env):
     """Makes sure we have a virtualenv installed for env."""
 
@@ -139,7 +146,7 @@ def start(env):
     ok, _ = core.run('{tmux_command} has-session -t {session_name}')
     if ok:
         core.user_input('This session already exists. Press any key to reattach.')
-        core.run('{tmux_command} attach-session -t {session_name}')
+        _attach_or_switch()
         return
 
     core.run('{tmux_command} new-session -d -s {session_name}')
@@ -192,4 +199,4 @@ def start(env):
                       '{session_name}:{window_index}.{base_pane_index}'),
                      base_pane_index=base_pane_index)
 
-    core.run('{tmux_command} attach-session -t {session_name}')
+    _attach_or_switch()
