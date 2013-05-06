@@ -154,8 +154,10 @@ def start(env):
     core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
                 str(len(core.configured('session_name'))))
 
-    # TODO(mason): Another instance where this configuration method isn't
-    # complete.
+    if core.configured('virtualenv_configured'):
+        core.run(('{tmux_command} set-environment -t {session_name} '
+                  'TENPER_VIRTUALENV {virtualenv_path}/bin/activate'))
+
     if core.configured('environment'):
         for k, v in core.configured('environment').items():
             with core.run_context(key=k, value=os.path.expandvars(v)):
