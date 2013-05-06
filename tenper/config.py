@@ -2,8 +2,6 @@ import os
 
 import yaml
 
-from . import core
-
 
 def _get(config, key, default=None):
     """Gets and expands a configuration value.
@@ -91,6 +89,8 @@ def load(file_name):
              'virtualenv_python_binary': ...,
              'virtualenv_use_site_packages': True | False}
     """
+
+    from . import core
 
     # Short circuit; new environment.
     if not os.path.exists(file_name):
