@@ -81,6 +81,22 @@ def _remove_virtualenv(env):
         print('Skipping.')
 
 
+def completions():
+    """Returns a space-separated list of available commands an arguments. This
+    is appropriate for the zsh completions."""
+
+    from . import core
+
+    args = ['list', 'edit', 'rebuild', 'delete']
+
+    if os.path.exists(core.configured('config_path')):
+        for f in os.listdir(core.configured('config_path')):
+            if f.endswith('.yml'):
+                args.append(f[0:-4])
+
+    print(' '.join(args))
+
+
 def delete(env):
     """Removes an environment configuration and extant virtualenv."""
     from . import core

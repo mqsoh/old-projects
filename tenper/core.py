@@ -149,7 +149,7 @@ def parse_args(args):
             '    tenper my-project\n'))
 
     if len(args) == 1:
-        # Either 'list' or a project name.
+        # 'list', 'completions', or a project name.
         parser.add_argument('project_name')
         parser.set_defaults(command='start')
 
@@ -171,6 +171,10 @@ def parse_args(args):
     if parsed_args.project_name == 'list':
         parsed_args.command = 'list'
         del parsed_args.project_name
+    # D:<
+    elif parsed_args.project_name == 'completions':
+        parsed_args.command = 'completions'
+        del parsed_args.project_name
 
 
     return parsed_args
@@ -190,6 +194,9 @@ def main(*args, **kwargs):
 
     if arguments.command == 'list':
         command.list()
+
+    elif arguments.command == 'completions':
+        command.completions()
 
     else:
         config_file_name = os.path.join(configured('config_path'),
