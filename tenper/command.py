@@ -6,14 +6,17 @@ from . import config
 
 
 def _attach_or_switch():
+    from . import core
+
     if os.getenv('TMUX'):
-        _run('{tmux_command} switch-client -t {session_name}')
+        core.run('{tmux_command} switch-client -t {session_name}')
     else:
-        _run('{tmux_command} attach-session -t {session_name}')
+        core.run('{tmux_command} attach-session -t {session_name}')
 
 
 def _confirm_virtualenv(env):
     """Makes sure we have a virtualenv installed for env."""
+    from . import core
 
     directory = core.configured('virtualenv_path')
 
@@ -24,7 +27,7 @@ def _confirm_virtualenv(env):
         print(
             'We have a virtualenv confirgured for {}. Building...'.format(env))
 
-        _run((
+        core.run((
             'virtualenv -p {virtualenv_python_binary} '
             '{virtualenv_use_site_packages} {virtualenv_path}'))
 
@@ -35,16 +38,17 @@ def _query_base_indeces():
     Returns:
         (base_window_index, base_pane_index)
     """
+    from . import core
 
     base_index = 0
-    _, output = _run('{tmux_command} show-options -g -t {session_name}')
+    _, output = core.run('{tmux_command} show-options -g -t {session_name}')
     for line in output.split('\n'):
         if 'base-index' in line:
             base_index = int(line.replace('base-index ', ''))
             break
 
     pane_base_index = 0
-    _, output = _run('{tmux_command} show-window-options -g -t {session_name}')
+    _, output = core.run('{tmux_command} show-window-options -g -t {session_name}')
     for line in output.split('\n'):
         if 'pane-base-index' in line:
             pane_base_index = int(line.replace('pane-base-index ', ''))
@@ -54,6 +58,7 @@ def _query_base_indeces():
 
 def _remove_virtualenv(env):
     """Deletes a possibly extant virtualenv and rebuild it."""
+    from . import core
 
     # Short circuit; no virtualenv configured.
     if not core.configured('virtualenv_configured'):
@@ -76,15 +81,9 @@ def _remove_virtualenv(env):
         print('Skipping.')
 
 
-def _run(*args, **kwargs):
-    """I have a circular import error. Everyone says that's badly organized
-    code. It's true. :("""
-    from . import core
-    _run(*args, **kwargs)
-
-
 def delete(env):
     """Removes an environment configuration and extant virtualenv."""
+    from . import core
 
     _remove_virtualenv(env)
 
@@ -107,18 +106,20 @@ def delete(env):
 
 def edit(env):
     """Edit (or create) an environment's configuration."""
+    from . import core
 
     config_file_name = core.configured('config_file_name')
 
     if not os.path.exists(config_file_name):
         config.create(config_file_name, env)
 
-    with _run_context():
-        _run('{editor} {config_file_name}')
+    with core.run_context():
+        core.run('{editor} {config_file_name}')
 
 
 def list():
     """Prints the configuration files in {config_path} to stdout."""
+    from . import core
 
     directory = core.configured('config_path')
 
@@ -145,65 +146,66 @@ def rebuild(env):
 
 
 def start(env):
+    from . import core
     print('Starting {}'.format(env))
     _confirm_virtualenv(env)
 
     # Short circuit; prexisting session.
-    ok, _ = _run('{tmux_command} has-session -t {session_name}')
+    ok, _ = core.run('{tmux_command} has-session -t {session_name}')
     if ok:
         core.user_input('This session already exists. Press any key to reattach.')
         _attach_or_switch()
         return
 
-    _run('{tmux_command} new-session -d -s {session_name}')
-    _run('{tmux_command} set-option -t {session_name} default-path {project_root}')
-    _run('{tmux_command} set-option -t {session_name} status-left-length ' +
+    core.run('{tmux_command} new-session -d -s {session_name}')
+    core.run('{tmux_command} set-option -t {session_name} default-path {project_root}')
+    core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
                 str(len(core.configured('session_name'))))
 
     if core.configured('virtualenv_configured'):
-        _run(('{tmux_command} set-environment -t {session_name} '
+        core.run(('{tmux_command} set-environment -t {session_name} '
                   'TENPER_VIRTUALENV {virtualenv_path}/bin/activate'))
 
     if core.configured('environment'):
         for k, v in core.configured('environment').items():
-            with _run_context(key=k, value=os.path.expandvars(v)):
-                _run(('{tmux_command} set-environment -t {session_name} '
+            with core.run_context(key=k, value=os.path.expandvars(v)):
+                core.run(('{tmux_command} set-environment -t {session_name} '
                           '{key} {value}'))
 
     base_window_index, base_pane_index = _query_base_indeces()
 
     for window_index, window in enumerate(core.configured('windows', [])):
-        with _run_context(window_index=base_window_index+window_index):
-            _run(('{tmux_command} new-window -d -k -t '
+        with core.run_context(window_index=base_window_index+window_index):
+            core.run(('{tmux_command} new-window -d -k -t '
                       '{session_name}:{window_index} -n {window_name}'),
                      window_name=window.get('name', 'No Name'))
 
             for pane_index, pane in enumerate(window.get('panes', [])):
-                with _run_context(pane_index=base_pane_index+pane_index,
+                with core.run_context(pane_index=base_pane_index+pane_index,
                                       previous_pane_index=base_pane_index+pane_index-1):
                     if pane_index != 0:
-                        _run(('{tmux_command} split-window -t '
+                        core.run(('{tmux_command} split-window -t '
                                   '{session_name}:{window_index}.{previous_pane_index}'))
 
                     if core.configured('virtualenv_configured'):
-                        _run(('{tmux_command} send-keys -t '
+                        core.run(('{tmux_command} send-keys -t '
                                   '{session_name}:{window_index}.{pane_index} '
                                   'source {virtualenv_path}/bin/activate '
                                   'ENTER'))
 
                     # It might be an empty command.
                     if pane:
-                        _run(('{tmux_command} send-keys -t '
+                        core.run(('{tmux_command} send-keys -t '
                                   '{session_name}:{window_index}.{pane_index} '
                                   '{pane_command} ENTER'),
                                  pane_command=pane)
 
             if window.get('layout'):
-                _run(('{tmux_command} select-layout -t '
+                core.run(('{tmux_command} select-layout -t '
                           '{session_name}:{window_index} {layout}'),
                          layout=window['layout'])
 
-            _run(('{tmux_command} select-pane -t '
+            core.run(('{tmux_command} select-pane -t '
                       '{session_name}:{window_index}.{base_pane_index}'),
                      base_pane_index=base_pane_index)
 
