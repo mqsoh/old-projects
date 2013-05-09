@@ -17,16 +17,17 @@ environment:
   MYHOME: $HOME
 
 windows:
-  - name: One
-    panes:
-      - ls -l
+  # Valid values for 'layout': even-horizontal, even-vertical, main-horizontal,
+  # main-vertical, or tiled. You can also specify the layout string in the
+  # list-windows command (see the layout section section in tmux's man page).
 
-  - name: Two
-    # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
-    # main-vertical, or tiled. You can also specify the layout string in the
-    # list-windows command (see the layout section section in tmux's man page).
+  - name: One
     layout: main-vertical
     panes:
-      - ls
-      - vim
+      - ls -l
       - top
+
+  - name: Two
+    layout: main-vertical
+    panes:
+      - vim

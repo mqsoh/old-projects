@@ -40,12 +40,12 @@ The template looks like this.::
     # Shows up in 'tmux list-sessions' and on the left side of the status bar.
     session name: my-project
 
-    # Optional; if provided, the virtualenv activate script will be sourced in all
-    # new windows and panes by setting tmux's default-command option.
-    virtualenv:
-        python binary: /usr/bin/python
-        site packages?: false
-        path: $HOME/.venv #optional virtualenv path
+    # Uncomment the following to manage a virtualenv for this session. If the
+    # virtualenv doesn't exist at <base path>/<session name> a new one will be
+    # created.
+    #virtualenv:
+    #  python binary: /usr/bin/python
+    #  site packages?: false
 
     # When starting a tenper session, all windows and panes will be changed to this
     # directory.
@@ -53,23 +53,24 @@ The template looks like this.::
 
     # Environment variables (only available inside the tmux session).
     environment:
-        MYKEY: myvalue
-        PATH: $PATH:/foo/bar/baz
+      MYHOME: $HOME
 
     windows:
-      - name: One
-        panes:
-          - ls -l
+      # Valid values for 'layout': even-horizontal, even-vertical, main-horizontal,
+      # main-vertical, or tiled. You can also specify the layout string in the
+      # list-windows command (see the layout section section in tmux's man page).
 
-      - name: Two
-        # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
-        # main-vertical, or tiled. You can also specify the layout string in the
-        # list-windows command (see the layout section section in tmux's man page).
+      - name: One
         layout: main-vertical
         panes:
-            - ls
-            - vim
-            - top
+          - ls -l
+          - top
+
+      - name: Two
+        layout: main-vertical
+        panes:
+          - vim
+
 
 Start a session.
 ----------------
