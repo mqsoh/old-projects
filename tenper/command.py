@@ -130,7 +130,7 @@ def edit(env):
         config.create(config_file_name, env)
 
     with core.run_context():
-        core.run('{editor} {config_file_name}')
+        core.run('{editor} {config_file_name}', interactive=True)
 
 
 def list():

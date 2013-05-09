@@ -82,7 +82,7 @@ def configured(key, default=None):
     return _run_context.get(key, default)
 
 
-def run(command, **kwargs):
+def run(command, interactive=False, **kwargs):
     """Runs a command. The command is formatted with the run_context.
 
     This permits the following usage. The run context is augmented with
@@ -117,14 +117,25 @@ def run(command, **kwargs):
     if _print_commands:
         print('* {}'.format(' '.join(command_list)))
 
-    try:
-        output = subprocess.check_output(command_list)
-        ok = True
-    except subprocess.CalledProcessError as e:
-        output = e.output
-        ok = False
 
-    return (ok, output.decode())
+    # This is for the 'edit' command. I think it's the only way to open an
+    # editor.
+    if interactive:
+        response = subprocess.call(command_list)
+        ok = response == 0
+        output = None
+
+    else:
+        try:
+            output = subprocess.check_output(command_list)
+            ok = True
+        except subprocess.CalledProcessError as e:
+            output = e.output
+            ok = False
+
+        output = output.decode()
+
+    return (ok, output)
 
 
 def parse_args(args):
