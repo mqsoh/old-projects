@@ -73,7 +73,8 @@ The template looks like this.::
 
 Start a session.
 ----------------
-If a session already exists, you'll be reattached.::
+If a session with this name already exists, you'll be reattached. If you're
+already in a tmux session, you'll be switched (instead of nesting).::
 
     tenper my-project
 
