@@ -179,12 +179,8 @@ def parse_args(args):
     parsed_args = parser.parse_args(args)
 
     # meh.
-    if parsed_args.project_name == 'list':
-        parsed_args.command = 'list'
-        del parsed_args.project_name
-    # D:<
-    elif parsed_args.project_name == 'completions':
-        parsed_args.command = 'completions'
+    if parsed_args.project_name in ['list', 'completions']:
+        parsed_args.command = parsed_args.project_name
         del parsed_args.project_name
 
 
