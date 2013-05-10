@@ -23,6 +23,9 @@ Changes in 1.2.0
         Defaults to 'tmux'. Try 'tmux -2' if you want 256 colors without TERM
         wrangling.
 
+- Tenper will set TENPER_VIRTUALENV to be the path to the activate script,
+  allowing automatic sourcing of virtualenvs in new windows.
+
 - Fixed issue #3; Added pyyaml as a dependency.
 
 - Fixed issue #4; If you're already in a tmux session, tenper with switch to

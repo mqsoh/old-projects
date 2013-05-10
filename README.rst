@@ -125,23 +125,41 @@ You can set the following environment variables.
 
 
 
+Environment.
+============
+
+Virtualenv for new windows.
+---------------------------
+If you want to automatically source the configured virtualenv activation script
+for new windows in your tmux sessions, tenper provides the TENPER_VIRTUALENV
+environment variable to all sessions.
+
+In your **.bashrc**::
+
+    if [[ $TENPER_VIRTUALENV ]] then
+        source $TENPER_VIRTUALENV
+    fi
+
+...or in your **.zshrc**::
+
+    if [[ -n "$TENPER_VIRTUALENV" ]] then
+        source $TENPER_VIRTUALENV
+    fi
+
+
 Tab completion.
-===============
+---------------
 
-Zsh
----
+Tenper will install ``tenper-completion.sh`` to a bin directory, so you can
+enable **bash** completion by sourcing it. ::
 
-You can add the following line after you've loaded compinit in your .zshrc. ::
+    source $(which tenper-completion.sh)
+
+If you use **zsh**, you can add the following line after you've loaded compinit in
+your .zshrc. ::
 
     compdef "_arguments '*: :($(tenper completions))'" tenper
 
-Bash
-----
-
-Tenper will install ``tenper-completion.sh`` to a bin directory, so you can
-enable *bash** completion by sourcing it. ::
-
-    source $(which tenper-completion.sh)
 
 
 License
