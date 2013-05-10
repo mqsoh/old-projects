@@ -206,8 +206,8 @@ def start(env):
                     if core.configured('virtualenv_configured'):
                         core.run(('{tmux_command} send-keys -t '
                                   '{session_name}:{window_index}.{pane_index} '
-                                  'source {virtualenv_path}/bin/activate '
-                                  'ENTER'))
+                                  '{source_virtualenv} ENTER'),
+                                 source_virtualenv='source $TENPER_VIRTUALENV')
 
                     # It might be an empty command.
                     if pane:
