@@ -117,17 +117,23 @@ def run(command, interactive=False, **kwargs):
     if _print_commands:
         print('* {}'.format(' '.join(command_list)))
 
+    # If you're inside a tmux session, tmux won't let you send commands to
+    # another tmux session (even if it's detached). To force it, tmux suggests
+    # unsetting the TMUX environment variable. We'll run our commands in a
+    # modified environment with no TMUX set.
+    env_no_tmux = os.environ.copy()
+    old_tmux = env_no_tmux.pop('TMUX', None)
 
     # This is for the 'edit' command. I think it's the only way to open an
     # editor.
     if interactive:
-        response = subprocess.call(command_list)
+        response = subprocess.call(command_list, env=env_no_tmux)
         ok = response == 0
         output = None
 
     else:
         try:
-            output = subprocess.check_output(command_list)
+            output = subprocess.check_output(command_list, env=env_no_tmux)
             ok = True
         except subprocess.CalledProcessError as e:
             output = e.output
