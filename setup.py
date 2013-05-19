@@ -1,8 +1,8 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='tenper',
-    version='1.1.1',
+    version='1.2.0',
     description='A tmux session manager with optional virtualenv support.',
     long_description=(
         'Tenper is a tmux wrapper. It provides project-based tmux window/pane '
@@ -12,8 +12,17 @@ setup(
     author='Mason Staugler',
     author_email='mason@staugler.net',
     url='https://github.com/mqsoh/tenper',
-    py_modules=['tenper'],
-    scripts=['tenper', 'tenper-completion.sh'],
     license='MIT license',
-    install_requires=['pyyaml==3.10'],
-)
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+    ],
+
+    install_requires=['pyyaml'],
+    packages=find_packages(exclude=['*_tests.py']),
+    entry_points={'console_scripts': ['tenper = tenper.core:main']},
+    scripts=['scripts/tenper-completion.sh'],
+    package_data={'tenper': ['config_template.yml']})

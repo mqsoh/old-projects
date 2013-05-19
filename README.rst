@@ -40,12 +40,12 @@ The template looks like this.::
     # Shows up in 'tmux list-sessions' and on the left side of the status bar.
     session name: my-project
 
-    # Optional; if provided, the virtualenv activate script will be sourced in all
-    # new windows and panes by setting tmux's default-command option.
-    virtualenv:
-        python binary: /usr/bin/python
-        site packages?: false
-        path: $HOME/.venv #optional virtualenv path
+    # Uncomment the following to manage a virtualenv for this session. If the
+    # virtualenv doesn't exist at <base path>/<session name> a new one will be
+    # created.
+    #virtualenv:
+    #  python binary: /usr/bin/python
+    #  site packages?: false
 
     # When starting a tenper session, all windows and panes will be changed to this
     # directory.
@@ -53,27 +53,29 @@ The template looks like this.::
 
     # Environment variables (only available inside the tmux session).
     environment:
-        MYKEY: myvalue
-        PATH: $PATH:/foo/bar/baz
+      MYHOME: $HOME
 
     windows:
-      - name: One
-        panes:
-          - ls -l
+      # Valid values for 'layout': even-horizontal, even-vertical, main-horizontal,
+      # main-vertical, or tiled. You can also specify the layout string in the
+      # list-windows command (see the layout section section in tmux's man page).
 
-      - name: Two
-        # Layout of the panes: even-horizontal, even-vertical, main-horizontal,
-        # main-vertical, or tiled. You can also specify the layout string in the
-        # list-windows command (see the layout section section in tmux's man page).
+      - name: One
         layout: main-vertical
         panes:
-            - ls
-            - vim
-            - top
+          - ls -l
+          - top
+
+      - name: Two
+        layout: main-vertical
+        panes:
+          - vim
+
 
 Start a session.
 ----------------
-If a session already exists, you'll be reattached.::
+If a session with this name already exists, you'll be reattached. If you're
+already in a tmux session, you'll be switched (instead of nesting).::
 
     tenper my-project
 
@@ -102,23 +104,62 @@ project and then rebuild it with::
 
 
 
+Configuration
+=============
+You can set the following environment variables.
+
+- TENPER_VERBOSE
+    Set to 'true' if you want to see the commands we execute.
+
+- TENPER_CONFIGS
+    The path to where you want the configuration files stored. Defaults to
+    ~/.tenper.
+
+- TENPER_VIRTUALENVS
+    The path to where you keep your virtualenvs. Defaults to
+    virtualenvwrapper's default of ~/.virtualenvs.
+
+- TENPER_TMUX_COMMAND
+    Defaults to 'tmux'. Try 'tmux -2' if you want 256 colors without TERM
+    wrangling.
+
+
+
+Environment.
+============
+
+Virtualenv for new windows.
+---------------------------
+If you want to automatically source the configured virtualenv activation script
+for new windows in your tmux sessions, tenper provides the TENPER_VIRTUALENV
+environment variable to all sessions.
+
+In your **.bashrc**::
+
+    if [[ $TENPER_VIRTUALENV ]] then
+        source $TENPER_VIRTUALENV
+    fi
+
+...or in your **.zshrc**::
+
+    if [[ -n "$TENPER_VIRTUALENV" ]] then
+        source $TENPER_VIRTUALENV
+    fi
+
+
 Tab completion.
-===============
+---------------
 
-Zsh
----
+Tenper will install ``tenper-completion.sh`` to a bin directory, so you can
+enable **bash** completion by sourcing it. ::
 
-You can add the following line after you've loaded compinit in your .zshrc. ::
+    source $(which tenper-completion.sh)
+
+If you use **zsh**, you can add the following line after you've loaded compinit in
+your .zshrc. ::
 
     compdef "_arguments '*: :($(tenper completions))'" tenper
 
-Bash
-----
-
-Tenper will install ``tenper-completion.sh`` to a bin directory, so you can
-enable *bash** completion by sourcing it. ::
-
-    source $(which tenper-completion.sh)
 
 
 License
