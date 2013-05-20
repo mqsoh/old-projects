@@ -223,11 +223,11 @@ def start(env):
 
     core.run(('{tmux_command} select-window -t '
               '{session_name}:{base_window_index}'),
-             base_window_index=base_pane_index)
+             base_window_index=base_window_index)
 
     core.run(('{tmux_command} select-pane -t '
               '{session_name}:{base_window_index}.{base_pane_index}'),
-             base_window_index=base_pane_index,
+             base_window_index=base_window_index,
              base_pane_index=base_pane_index)
 
     _attach_or_switch()
