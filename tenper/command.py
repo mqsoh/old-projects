@@ -175,8 +175,8 @@ def start(env):
 
     core.run('{tmux_command} new-session -d -s {session_name}')
     core.run('{tmux_command} set-option -t {session_name} default-path {project_root}')
-    core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
-                str(len(core.configured('session_name'))))
+#    core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
+#                str(len(core.configured('session_name'))))
 
     if core.configured('virtualenv_configured'):
         core.run(('{tmux_command} set-environment -t {session_name} '
