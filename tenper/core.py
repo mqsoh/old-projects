@@ -139,9 +139,7 @@ def run(command, interactive=False, **kwargs):
             output = e.output
             ok = False
 
-        # Might cause UnicodeDecodeError when tmux.conf contains non-ascii
-        # chars.
-        #output = output.decode()
+        output = output.decode('utf-8')
 
     return (ok, output)
 
