@@ -38,23 +38,41 @@ def _query_base_indeces():
     Returns:
         (base_window_index, base_pane_index)
     """
-    from . import core
 
-    base_index = 0
-    _, output = core.run('{tmux_command} show-options -g -t {session_name}')
-    for line in output.split('\n'):
-        if 'base-index' in line:
-            base_index = int(line.replace('base-index ', ''))
-            break
+    default_base_index = 0
+    base_index_str = _get_tmux_option_value('base-index')
+    if base_index_str:
+        base_index = int(base_index_str)
+    else:
+        base_index = default_base_index
 
-    pane_base_index = 0
-    _, output = core.run('{tmux_command} show-window-options -g -t {session_name}')
-    for line in output.split('\n'):
-        if 'pane-base-index' in line:
-            pane_base_index = int(line.replace('pane-base-index ', ''))
+    default_pane_base_index = 0
+    pane_base_index_str = _get_tmux_option_value('pane-base-index')
+    if pane_base_index_str:
+        pane_base_index = int(pane_base_index_str)
+    else:
+        pane_base_index = default_pane_base_index
 
     return (base_index, pane_base_index)
 
+def _get_tmux_option_value(option):
+    """Returns the specified option's value from tmux options"""
+    from . import core
+
+    _, output = core.run('{tmux_command} show-options -g -t {session_name}')
+    retval = ''
+    for line in output.splitlines():
+        if option in line:
+            retval = line.split()[1]
+            break
+    return retval
+
+def _query_status_left_length():
+    status_left_length = _get_tmux_option_value('status-left-length')
+    if status_left_length:
+        return int(status_left_length)
+    else:
+        return None
 
 def _remove_virtualenv(env):
     """Deletes a possibly extant virtualenv and rebuild it."""
@@ -175,8 +193,12 @@ def start(env):
 
     core.run('{tmux_command} new-session -d -s {session_name}')
     core.run('{tmux_command} set-option -t {session_name} default-path {project_root}')
-#    core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
-#                str(len(core.configured('session_name'))))
+    current_status_left_length = _query_status_left_length()
+    if not current_status_left_length:
+        current_status_left_length = 0
+    if len(core.configured('session_name')) > current_status_left_length:
+        core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
+                    str(len(core.configured('session_name'))))
 
     if core.configured('virtualenv_configured'):
         core.run(('{tmux_command} set-environment -t {session_name} '
