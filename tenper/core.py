@@ -139,7 +139,7 @@ def run(command, interactive=False, **kwargs):
             output = e.output
             ok = False
 
-        output = output.decode()
+        output = output.decode('utf-8')
 
     return (ok, output)
 
