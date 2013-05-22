@@ -62,8 +62,9 @@ def _get_tmux_option_value(option):
     _, output = core.run('{tmux_command} show-options -g -t {session_name}')
     retval = ''
     for line in output.splitlines():
-        if option in line:
-            retval = line.split()[1]
+        line_as_list = line.split()
+        if line_as_list[0] == option:
+            retval = ' '.join(line_as_list[1:])
             break
     return retval
 
