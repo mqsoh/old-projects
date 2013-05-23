@@ -1,3 +1,12 @@
+Changes in 1.2.1
+================
+
+- Fixed decoding error in one of the subprocess calls. (@vuduchild)
+- Status-left-length will only be increased to fit the session name, permitting
+  oversized status-left configurations. (@vuduchild)
+
+
+
 Changes in 1.2.0
 ================
 
