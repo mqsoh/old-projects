@@ -32,52 +32,6 @@ def _confirm_virtualenv(env):
             '{virtualenv_use_site_packages} {virtualenv_path}'))
 
 
-def _query_base_indeces():
-    """Checks the tmux options for the base index for windows and panes.
-
-    Returns:
-        (base_window_index, base_pane_index)
-    """
-
-    default_base_index = 0
-    base_index_str = _get_tmux_option_value('base-index')
-    if base_index_str:
-        base_index = int(base_index_str)
-    else:
-        base_index = default_base_index
-
-    default_pane_base_index = 0
-    pane_base_index_str = _get_tmux_option_value('pane-base-index')
-    if pane_base_index_str:
-        pane_base_index = int(pane_base_index_str)
-    else:
-        pane_base_index = default_pane_base_index
-
-    return (base_index, pane_base_index)
-
-
-def _get_tmux_option_value(option):
-    """Returns the specified option's value from tmux options"""
-    from . import core
-
-    _, output = core.run('{tmux_command} show-options -g -t {session_name}')
-    retval = ''
-    for line in output.splitlines():
-        line_as_list = line.split()
-        if line_as_list[0] == option:
-            retval = ' '.join(line_as_list[1:])
-            break
-    return retval
-
-
-def _query_status_left_length():
-    status_left_length = _get_tmux_option_value('status-left-length')
-    if status_left_length:
-        return int(status_left_length)
-    else:
-        return None
-
-
 def _remove_virtualenv(env):
     """Deletes a possibly extant virtualenv and rebuild it."""
     from . import core
@@ -101,6 +55,33 @@ def _remove_virtualenv(env):
         print('Deleted {}.'.format(directory))
     else:
         print('Skipping.')
+
+
+def _tmux_option(name, cast=str, default=None):
+    """Returns the value of a tmux option or the value of default."""
+
+    from . import core
+    _, output = core.run('{tmux_command} show-options -g -t {session_name}')
+    return _tmux_option_parser(name, output, cast, default)
+
+
+def _tmux_option_parser(name, output, cast, default):
+    """Returns the value from tmux's option output or the value of default."""
+
+    for line in output.splitlines():
+        parts = line.split()
+        if parts[0] == name:
+            return cast(' '.join(parts[1:]))
+
+    return default
+
+
+def _tmux_window_option(name, cast=str, default=None):
+    """Returns the value of a tmux window option or the value of default."""
+
+    from . import core
+    _, output = core.run('{tmux_command} show-window-options -g -t {session_name}')
+    return _tmux_option_parser(name, output, cast, default)
 
 
 def completions():
@@ -197,10 +178,9 @@ def start(env):
 
     core.run('{tmux_command} new-session -d -s {session_name}')
     core.run('{tmux_command} set-option -t {session_name} default-path {project_root}')
-    current_status_left_length = _query_status_left_length()
-    if not current_status_left_length:
-        current_status_left_length = 0
-    if len(core.configured('session_name')) > current_status_left_length:
+
+    status_left_length = _tmux_option('status-left-length', cast=int, default=0)
+    if len(core.configured('session_name')) > status_left_length:
         core.run('{tmux_command} set-option -t {session_name} status-left-length ' +
                     str(len(core.configured('session_name'))))
 
@@ -214,7 +194,10 @@ def start(env):
                 core.run(('{tmux_command} set-environment -t {session_name} '
                           '{key} {value}'))
 
-    base_window_index, base_pane_index = _query_base_indeces()
+    base_window_index = _tmux_option('base-index', cast=int, default=0)
+    base_pane_index = _tmux_window_option('pane-base-index',
+                                          cast=int,
+                                          default=0)
 
     for window_index, window in enumerate(core.configured('windows', [])):
         with core.run_context(window_index=base_window_index+window_index):
