@@ -55,6 +55,7 @@ def _query_base_indeces():
 
     return (base_index, pane_base_index)
 
+
 def _get_tmux_option_value(option):
     """Returns the specified option's value from tmux options"""
     from . import core
@@ -68,12 +69,14 @@ def _get_tmux_option_value(option):
             break
     return retval
 
+
 def _query_status_left_length():
     status_left_length = _get_tmux_option_value('status-left-length')
     if status_left_length:
         return int(status_left_length)
     else:
         return None
+
 
 def _remove_virtualenv(env):
     """Deletes a possibly extant virtualenv and rebuild it."""
