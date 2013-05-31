@@ -1,5 +1,6 @@
 import hashlib
 
+import django.conf
 from django.contrib.staticfiles.management.commands import collectstatic
 
 
@@ -22,7 +23,14 @@ class Command(collectstatic.Command):
     def delete_file(self, path, prefixed_path, source_storage):
         if self.storage.exists(prefixed_path):
             try:
-                remote_checksum = self.storage._wrapped.entries.get(prefixed_path).etag.strip('"')
+                # Support django-s3-folder-storage by prefixing the remote key
+                # with the configured directory.
+                remote_path = prefixed_path
+                if getattr(django.conf.settings, 'STATIC_S3_PATH', None):
+                    remote_path = '/'.join([django.conf.settings.STATIC_S3_PATH,
+                                            prefixed_path])
+
+                remote_checksum = self.storage._wrapped.entries.get(remote_path).etag.strip('"')
                 local_checksum = md5_for_file(source_storage.open(path))
 
             except Exception as e:

@@ -5,6 +5,9 @@ django-s3-etag-collectstatic
 Overrides the core collectstatic command to compare the S3 etag and the md5 of
 the local file.
 
+If you're using django-s3-folder-storage_, the STATIC_S3_PATH will be used
+transparently.
+
 
 Installation
 ============
@@ -80,6 +83,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 
 .. _django-storages: http://django-storages.readthedocs.org/en/latest/
+.. _django-s3-folder-storage: https://github.com/jamstooks/django-s3-folder-storage
 .. _A stackoverflow question with someone having the opposite problem from me.: http://stackoverflow.com/questions/14417322/django-collectstatic-from-heroku-pushes-to-s3-everytime
 .. _A Django snippet that prevents pointless copying._: http://djangosnippets.org/snippets/2889/
 .. _A library wrapping the aforesaid Django snippet._: https://github.com/AGoodId/django-s3-collectstatic
