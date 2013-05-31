@@ -25,7 +25,7 @@ class Command(collectstatic.Command):
                 remote_checksum = self.storage._wrapped.entries.get(prefixed_path).etag.strip('"')
                 local_checksum = md5_for_file(source_storage.open(path))
 
-            except Exception e:
+            except Exception as e:
                 print((
                     'django-s3-etag-collecstatic error: Skipping etag/md5 '
                     'comparison due to an exception ({}).'
