@@ -18,6 +18,7 @@ In your Django settings::
 
     INSTALLED_APPS = (
         ...
+        # Must come after django.contrib.staticfiles.
         'django_s3_etag_collectstatic',
         ...
     )
@@ -27,6 +28,14 @@ are the pertinent settings for this library.::
 
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+
+
+Usage
+=====
+
+This overrides the core collectstatic command, so::
+
+    python manage.py collectstatic
 
 
 Rationale
