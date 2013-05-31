@@ -14,7 +14,7 @@ Installation
 
 This contains very little code, so I wont even bother submitting it to the PyPi. ::
 
-    pip install git+git://github.com/mqsoh/django-s3-etag-collectstatic.git
+    pip install git+git://github.com/mqsoh/django-s3-etag-collectstatic.git@1.0#egg=django-s3-etag-collectstatic
 
 
 In your Django settings::
