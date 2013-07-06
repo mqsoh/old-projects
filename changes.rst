@@ -1,3 +1,9 @@
+Changes in 1.2.2
+================
+- Starting a new session for an environment that hasn't been configured will no
+  longer create a broken tmux session. Fixes #8.
+
+
 Changes in 1.2.1
 ================
 

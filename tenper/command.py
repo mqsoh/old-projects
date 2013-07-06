@@ -166,6 +166,12 @@ def rebuild(env):
 
 def start(env):
     from . import core
+
+    # Short circuit; confirm that the environment configuration exists.
+    if not core.configured('session_name'):
+        print('The \'{}\' environment doesn\'t exist.'.format(env))
+        return
+
     print('Starting {}'.format(env))
     _confirm_virtualenv(env)
 
