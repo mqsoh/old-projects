@@ -211,6 +211,19 @@ def start(env):
                       '{session_name}:{window_index} -n {window_name}'),
                      window_name=window.get('name', 'No Name'))
 
+            # TODO(mason): This is so ugly. My abstractions have completely
+            # fallen apart. I may want to rewrite all this again with: 1. a
+            # mind to *testing* it, for crying out loud, and 2. making it less
+            # complicated.
+            #
+            # The run context with augmented local configuration is good. It
+            # lets us have clear commands without a lot of .format calls.
+            # However, you can see it's not solved ideally because we still
+            # need to add a bunch of context in most places.
+            core.run(('{tmux_command} send-keys -t '
+                      '{session_name}:{window_index} {cd_command} ENTER'),
+                     cd_command='cd {}'.format(core.configured('project_root')))
+
             for pane_index, pane in enumerate(window.get('panes', [])):
                 with core.run_context(pane_index=base_pane_index+pane_index,
                                       previous_pane_index=base_pane_index+pane_index-1):
