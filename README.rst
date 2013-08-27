@@ -8,6 +8,7 @@ permits concurrent usage of virtualenvwrapper.
 
 (The name is a corruption of 'tmuxvirtualenvwrapper'.)
 
+There is a similar project that you may want to consider: `pytmux`_.
 
 
 Installation
@@ -167,3 +168,6 @@ License
 Copyright (c) 2013 Mason Staugler
 
 See LICENSE; it's the MIT license.
+
+
+.. _pytmux: https://github.com/wraithan/pytmux
