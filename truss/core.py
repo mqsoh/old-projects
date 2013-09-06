@@ -17,6 +17,10 @@ _username = 'foo'
 _password = 'bar'
 
 
+def main():
+    print('Setup is bootstrapped.')
+
+
 def application(env, start_response, root=None):
     """A WSGI handler for this site.
 
@@ -222,9 +226,3 @@ def uri_to_breadcrumbs(uri):
         crumbs.append((component or '.', subpath or '/'))
 
     return crumbs
-
-
-if __name__ == '__main__':
-    server = make_server()
-    print('Serving...')
-    server.serve_forever()
