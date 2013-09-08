@@ -5,6 +5,7 @@ import math
 import mimetypes
 import os
 import re
+import shutil
 import ssl
 import tempfile
 import wsgiref.simple_server
@@ -13,15 +14,7 @@ import wsgiref.util
 import markup
 
 
-_username = 'foo'
-_password = 'bar'
-
-
-def main():
-    print('Setup is bootstrapped.')
-
-
-def application(env, start_response, root=None):
+def application(env, start_response, root=None, username=None, password=None):
     """A WSGI handler for this site.
 
     Args:
@@ -30,35 +23,85 @@ def application(env, start_response, root=None):
         root: The root directory from we we'll serve this site. I'm adding this
             because the os.getcwd() seems to switch to / when the request comes
             in.
+        username: The username required to access this site.
+        password: The password required to access this site.
 
     Yields:
         Strings of HTML.
     """
 
-    # Short circuit; request credentials if the global _username or _password
-    # are set.
-    if not authorized(env.get('HTTP_AUTHORIZATION'), _username, _password):
-        for line in serve_credential_request(start_response):
-            yield line
-        return
-
     uri = env['PATH_INFO']
-    directory = os.path.join(root.rstrip('/'), uri.lstrip('/'))
+    file_or_directory = os.path.join(root.rstrip('/'), uri.lstrip('/'))
 
-    # Short circuit; handle file uploads.
+    # The default handler will be to serve directories.
+    handler = functools.partial(serve_directory, root=root, directory=file_or_directory)
+
+    if not authorized(env, username, password):
+        # Request authorization.
+        handler = serve_credential_request
+
     if env['REQUEST_METHOD'] == 'POST':
-        for line in receive_files(start_response, uri, directory, env['wsgi.input']):
-            yield line
-        return
+        # Download files from the user.
+        handler = functools.partial(receive_files, root=root)
 
-    # Short circuit; serve files.
-    if os.path.isfile(directory):
-        for line in serve_file(start_response, directory):
-            yield line
-        return
+    if os.path.isfile(file_or_directory):
+        # Serve a file to the user.
+        handler = functools.partial(serve_file, file=file_or_directory)
+
+    for line in handler(env, start_response):
+        yield line
+
+
+def make_server(hostname, port, docroot, username, password):
+    server = wsgiref.simple_server.make_server(
+        hostname,
+        port,
+        functools.partial(application,
+                          root=os.getcwd() if docroot == '.' else docroot,
+                          username=username,
+                          password=password))
+
+    server.socket = ssl.wrap_socket(server.socket,
+                                    server_side=True,
+                                    certfile=os.path.join(os.path.dirname(__file__), 'files', 'cert.pem'))
+    return server
+
+
+def authorized(env, username, password):
+    """Whether or not the HTTP_AUTHORIZATION header contains the proper
+    credentials."""
+
+    header = env.get('HTTP_AUTHORIZATION')
+
+    if not username or not password:
+        return False
+
+    if not header:
+        return False
+
+    if not header.startswith('Basic '):
+        return False
+
+    given_username, given_password = base64.b64decode(header[len('Basic '):]).split(':')
+    if not username == given_username or not password == given_password:
+        return False
+
+    return True
+
+
+def serve_credential_request(_env, start_response):
+    """Responds with a request for credentials."""
+
+    start_response('401 Not Authorized', [('WWW-Authenticate', 'Basic realm="truss"')])
+    yield 'You must provide valid credentials.'
+
+
+def serve_directory(env, start_response, root, directory):
+    """Renders directories, files, and an upload form to the user."""
 
     start_response('200 OK', [('Content-Type', 'text/html')])
 
+    uri = env['PATH_INFO']
     yield markup.head(uri)
     yield markup.breadcrumbs(uri_to_breadcrumbs(uri))
 
@@ -78,43 +121,9 @@ def application(env, start_response, root=None):
     yield markup.upload_form()
 
 
-def make_server(port=8000):
-    server = wsgiref.simple_server.make_server('', port, functools.partial(application, root=os.getcwd()))
-    server.socket = ssl.wrap_socket(server.socket,
-                                    server_side=True,
-                                    certfile=os.path.join(os.path.dirname(__file__), 'cert.pem'))
-    return server
+def serve_file(_env, start_response, file):
+    """Serves a file."""
 
-
-def authorized(header, username, password):
-    """Whether or not the provided header contains the proper credentials.
-
-    Any argument can be None. If username or password are falsy then we're open
-    to the world and this will return true.
-    """
-
-    if not username or not password:
-        return True
-
-    if not header:
-        return False
-
-    if not header.startswith('Basic '):
-        return False
-
-    given_username, given_password = base64.b64decode(header[len('Basic '):]).split(':')
-    if not username == given_username or not password == given_password:
-        return False
-
-    return True
-
-
-def serve_credential_request(start_response):
-    start_response('401 Not Authorized', [('WWW-Authenticate', 'Basic realm="truss"')])
-    yield 'You must provide valid credentials.'
-
-
-def serve_file(start_response, file):
     content_type, _ = mimetypes.guess_type(file)
 
     # We'll assume that the file is a text file if the size is small.
@@ -129,80 +138,29 @@ def serve_file(start_response, file):
         yield chunk
 
 
-def receive_files(start_response, current_uri, current_directory, input_file):
-    """Receives POSTed files.
+def receive_files(env, start_response, root):
+    """Receives posted files.
 
     Args:
         start_response: So that we can issue a redirect.
-        current_uri: The URI of the current page. This is where the user will
-            be redirected once the files are uploaded.
-        current_directory: The target location for the file uploads.
-        input_file: The wsgi.input file handler.
+        root: The docroot of the server.
     """
 
-    def download_file(input_file, separator):
-        """Returns file meta data and whether or not there's more content.
+    current_uri = env['PATH_INFO']
+    target_directory = os.path.join(root.rstrip('/'), current_uri.lstrip('/'))
+    form = cgi.FieldStorage(fp=env['wsgi.input'], environ=env)
+    uploaded_files = form['uploaded-files']
 
-        This function has a side effect of writing the contents to a
-        temporary file on disk.
+    # FieldStorage always returns other FieldStorage objects. If only only file
+    # was uploaded, we'll have a FieldStorage instance. If multiple files were
+    # uploaded, we'll have a list of FieldStorages.
+    if not isinstance(uploaded_files, list):
+        uploaded_files = [uploaded_files]
 
-        Args:
-            input_file: The wsgi.input.
-            separator: Since the separator will have been read to determine
-                the end of a file, this must be provided.
-
-        Returns:
-            A tuple of file information and a boolean indicating whether or
-            not there is more content. File information is a dictionary
-            with the following keys: 'file name', 'content type',
-            'temporary file name'.
-
-                ({'file name': 'foo.txt',
-                  'content type': 'text/plain',
-                  'temporary file name': '/tmp/asdfASDF'},
-                 True)
-        """
-
-        filename = re.match(r'.*filename="(?P<fn>[^"]+)".*', input_file.readline().strip()).group('fn')
-        content_type = input_file.readline().strip().replace('Content-Type: ', '')
-        _ = input_file.readline().strip()
-        temp_filename = tempfile.mktemp(prefix='truss-upload-')
-
-        meta = {
-            'file name': filename,
-            'content type': content_type,
-            'temporary file name': temp_filename,
-        }
-
-        with open(temp_filename, 'w') as f:
-            while True:
-                line = input_file.readline()
-                if '{}--\r\n'.format(separator.strip()) == line:
-                    return (meta, False)
-                if separator == line:
-                    return (meta, True)
-
-                f.write(line)
-
-
-    def download_files(input_file):
-        """Returns a list of file information for content we downloaded.
-        See 'download_file'."""
-
-        separator = input_file.readline()
-        file_information = []
-
-        while True:
-            fi, more = download_file(input_file, separator)
-            file_information.append(fi)
-            if not more:
-                break
-
-        return file_information
-
-    for info in download_files(input_file):
-        os.rename(info['temporary file name'],
-                  os.path.join(current_directory, info['file name']))
+    for field in uploaded_files:
+        if field.file:
+            with open(os.path.join(target_directory, field.filename), 'w') as target_file:
+                shutil.copyfileobj(field.file, target_file)
 
     start_response('302 Found', [('Location', current_uri)])
     yield 'Redirecting you to {}.'.format(current_uri)
@@ -215,7 +173,7 @@ def uri_to_breadcrumbs(uri):
     [('foo', 'foo'), ('bar', 'foo/bar')]
 
     >>> uri_to_breadcrumbs('/foo/bar')
-    [('top', '/'), ('foo', '/foo'), ('bar', '/foo/bar')]
+    [('.', '/'), ('foo', '/foo'), ('bar', '/foo/bar')]
     """
 
     crumbs = []

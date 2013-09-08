@@ -23,5 +23,5 @@ setup(
     ],
 
     packages=find_packages(exclude=['*_tests.py']),
-    entry_points={'console_scripts': ['truss = truss.core:main']},
+    entry_points={'console_scripts': ['truss = truss.truss:main']},
     package_data={'truss': ['files/*']})
