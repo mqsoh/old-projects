@@ -22,6 +22,6 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
 
-    packages=find_packages(exclude=['*_tests.py']),
+    packages=find_packages(exclude=['*_test.py']),
     entry_points={'console_scripts': ['truss = truss.truss:main']},
     package_data={'truss': ['files/*']})
