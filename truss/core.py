@@ -44,6 +44,12 @@ def application(env, start_response, root=None, username=None, password=None):
         # Download files from the user.
         handler = functools.partial(receive_files, root=root)
 
+    if uri == '/favicon.ico':
+        handler = functools.partial(serve_file, file=os.path.join(
+            os.path.dirname(__file__),
+            'files',
+            'favicon.ico'))
+
     if os.path.isfile(file_or_directory):
         # Serve a file to the user.
         handler = functools.partial(serve_file, file=file_or_directory)
