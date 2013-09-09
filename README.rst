@@ -50,8 +50,7 @@ developer mode. I don't want to do that because
 #. I'm a developer, but I'm not developing for ChromeOS.
 #. It disables the verified boot.
 #. It takes longer to boot up due to a warning about the lack of verification.
-#. The warning has a big computer thing frowning at me and I want happiness in
-   my life.
+#. The warning has a big computer thing frowning at me that is annoying.
 
 Truss is meant to facilitate development in the cloud. To get stuff off my
 remote development server, I would frequently run `python -m SimpleHTTPServer`.
