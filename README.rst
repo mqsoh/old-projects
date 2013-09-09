@@ -8,6 +8,25 @@ shut itself down (after five minutes, by default).
 It is meant to augment my usage of `python -m SimpleHTTPSever`.
 
 
+Installation
+============
+
+The package name is trussws (because 'truss' is taken by something that isn't
+used in the PyPI), but the executable is 'truss'.
+
+Globally ::
+
+    pip install trussws
+
+As a user ::
+
+    pip install --user trussws
+
+From a clone ::
+
+    python setup.py install
+
+
 Usage
 =====
 
@@ -47,3 +66,11 @@ remote machine. This came with some issues:
 #. It would be nice to have some authentication to get to what I'm temporarily
    serving.
 #. It would be nice to do it over SSL.
+
+
+License
+=======
+
+Copyright 2013 Mason Staugler
+
+See LICENSE; it's the MIT license.

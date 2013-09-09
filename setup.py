@@ -2,13 +2,17 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='truss',
+    name='trussws',
     version='0.1',
-    description='A simple+ HTTP server.',
+    description=(
+        'A web server that acts as a temporary, browser-based bridge to a '
+        'remote machine.'),
     long_description=(
-        'An HTTP server that also supports uploads. This is "python -m '
-        'SimpleHTTPServer" augmented for someone doing all their development in '
-        'the cloud.'),
+        'Truss is a temporary, browser-based bridge to a remote machine. It '
+        'will serve and receive files over an SSL connection with basic HTTP '
+        'authorization. It will shut itself down (after five minutes, by '
+        'default). It is meant to augment my usage of python -m '
+        'SimpleHTTPSever.'),
     keywords='file, manager, http, server, ssl, basic, http, auth',
     author='Mason Staugler',
     author_email='mason@staugler.net',
