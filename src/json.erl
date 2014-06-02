@@ -1,18 +1,8 @@
 -module(json).
+-export([
+    from_string/1
+]).
 
-%% json: json library's entry point.
 
--export([my_func/0]).
-
-
-%% API
-
-my_func() ->
-    ok().
-
-%% Internals
-
-ok() ->
-    ok.
-
-%% End of Module.
+from_string(String) ->
+    json_parser:value(String).

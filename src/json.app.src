@@ -1,6 +1,6 @@
 {application, json,
  [
-  {description, "An Erlang json library"},
+  {description, "A naive Erlang JSON parser that is probably slow and broken, too."},
   {vsn, "1"},
   {modules, [
              json
