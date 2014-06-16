@@ -1,6 +1,7 @@
 -module(json).
 -export([
     to_term/1,
+    to_term/2,
     from_term/1
 ]).
 
@@ -10,7 +11,10 @@
 
 
 to_term(String) ->
-    {Term, [] = _Rest_of_string} = json_parser:value(String),
+    to_term(String, []).
+
+to_term(String, Options) ->
+    {Term, [] = _Rest_of_string} = json_parser:value(String, Options),
     Term.
 
 
@@ -27,19 +31,29 @@ equality_test() ->
               favorite_foods => [
                   "pizza",
                   "chicken vindaloo",
-                  "seltzer"]},
-
-    Expected_output = #{"name" => "Mason Staugler",
-               "age" => 35,
-               "employed" => true,
-               "favorite_foods" => [
-                    "pizza",
-                    "chicken vindaloo",
-                    "seltzer"]},
+                  "seltzer"],
+              pet => #{name => "Sasha",
+                       type => "dog",
+                       personality => "pig"}},
 
     Json_document = from_term(Input),
-    Converted_term = to_term(Json_document),
 
-    Expected_output = Converted_term.
+    % Keys to atoms.
+    Input = to_term(Json_document, [atom_keys]),
+
+    Expected_output = #{"name" => "Mason Staugler",
+                        "age" => 35,
+                        "employed" => true,
+                        "favorite_foods" => [
+                             "pizza",
+                             "chicken vindaloo",
+                             "seltzer"],
+                        "pet" => #{"name" => "Sasha",
+                                   "type" => "dog",
+                                   "personality" => "pig"}},
+    Converted_term = to_term(Json_document),
+    Expected_output = Converted_term,
+
+    ok.
 
 -endif.
