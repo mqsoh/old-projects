@@ -14,7 +14,8 @@ to_term(String) ->
     to_term(String, []).
 
 to_term(String, Options) ->
-    {Term, [] = _Rest_of_string} = json_parser:value(String, Options),
+    % Assumes the rest of the input is okay to be ignored.
+    {Term, _Rest_of_string} = json_parser:value(String, Options),
     Term.
 
 
@@ -55,5 +56,8 @@ equality_test() ->
     Expected_output = Converted_term,
 
     ok.
+
+trailing_whitespace_test() ->
+    ["foobar"] = to_term("[\"foobar\"]\n").
 
 -endif.
