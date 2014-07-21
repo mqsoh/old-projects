@@ -27,6 +27,7 @@ object([$} | Rest], Object_list, _Options) ->
 object([Char | Rest], Object_list, Options) when
     Char == $,;
     Char == $ ;
+    Char == $\r;
     Char == $\n;
     Char == $\t ->
     object(Rest, Object_list, Options);
@@ -58,6 +59,7 @@ array([$] | Rest], Acc, _Options) ->
 array([Char | Rest], Acc, Options) when
     Char == $,;
     Char == $ ;
+    Char == $\r;
     Char == $\n;
     Char == $\t ->
     array(Rest, Acc, Options);
@@ -167,7 +169,10 @@ value_test() ->
     {[true, false, "Foo bar baz, buzz."], ""} = value("[true, false, \"Foo bar baz, buzz.\"]", []),
     {#{"foo" := "bar"}, ""} = value("{\"foo\": \"bar\"}", []),
     {#{"foo" := "bar", "baz" := ["b", "u", "zz"]}, ""} = value(
-        " {  \"foo\" : \"bar\",\n   \"baz\": [\n\t  \"b\" , \"u\", \"zz\"\n]}", []).
+        " {  \"foo\" : \"bar\",\n   \"baz\": [\n\t  \"b\" , \"u\", \"zz\"\n]}", []),
+    {#{"total_rows" := 0, "offset" := 0, "rows" := []}, "\n"} = value(
+        "{\"total_rows\":0,\"offset\":0,\"rows\":[\r\n\r\n]}\n", []),
+    ok.
 
 
 string_test() ->
