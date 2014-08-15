@@ -1,3 +1,11 @@
+==============
+Not maintained
+==============
+I didn't like the hassle of maintaining the yaml files. I opted for shell scripting instead. Here are my fish scripts.
+
+https://github.com/mqsoh/dotfiles/blob/0f9818d0c196e1e1c1653af9b405ffa2bc815ce1/.config/fish/functions/t.fish
+https://github.com/mqsoh/dotfiles/blob/0f9818d0c196e1e1c1653af9b405ffa2bc815ce1/.config/fish/functions/v.fish
+
 ======
 tenper
 ======
