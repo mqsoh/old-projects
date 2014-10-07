@@ -1,0 +1,125 @@
+<!doctype html>
+<title>./src/json.erl.nw</title>
+<style>
+    body {
+        background-color: #eeeeec;
+        color: #2e3436;
+    }
+    a {
+        color: #204a87;
+    }
+    pre {
+        padding: 10px;
+        background-color: #2e3436;
+        color: #eeeeec;
+    }
+    pre a {
+        color: #729fcf;
+    }
+</style>
+<!-- this file was generated automatically by noweave; better not edit it-->
+<h1><a name="NWDPow9e-1">json.erl</a></h1>
+<address>Mason Staugler</address>
+<p>
+This is the public interface to the libray.
+<p>
+<pre><a name="NWPow9e-1p0Y9w-1" href="#NWDPow9e-1"><dfn>&lt;*&gt;=</dfn></a>
+-module(json).
+-export([
+    <a name="NWPow9e-1p0Y9w-1-u1" href="#NWPow9e-jWllD-1"><i>&lt;exports&gt;</i></a>
+]).
+
+-ifdef(TEST).
+-include_lib(&quot;eunit/include/eunit.hrl&quot;).
+-endif.
+
+<a name="NWPow9e-1p0Y9w-1-u2" href="#NWDPow9e-2"><i>&lt;functions&gt;</i></a>
+
+-ifdef(TEST).
+<a name="NWPow9e-1p0Y9w-1-u3" href="#NWDPow9e-4"><i>&lt;tests&gt;</i></a>
+-endif.
+</pre><p>
+
+
+<a name="NWDPow9e-2">The </a><code>to_term</code> function converts a JSON string into an Erlang term with
+options. The only option is <code>atom_keys</code> which means that map keys are
+converted to atoms.
+<p>
+We strip whitespace from the rest of the input to ensure that the document is
+well formed.
+<p>
+<pre><a name="NWPow9e-nRuDO-1" href="#NWDPow9e-2"><dfn>&lt;functions&gt;=</dfn></a> <b>(<a href="#NWDPow9e-1">&lt;-U</a>)</b> <b>[D<a href="#NWDPow9e-3">-&gt;</a>]</b>
+to_term(String) -&gt;
+    to_term(String, []).
+
+to_term(String, Options) -&gt;
+    {Term, Rest} = json_parser:value(String, Options),
+    &quot;&quot; = re:replace(Rest, &quot;[\\s]&quot;, &quot;&quot;, [global, {return, list}]),
+    Term.
+</pre><pre><a name="NWPow9e-jWllD-1" href="#NWPow9e-jWllD-1"><dfn>&lt;exports&gt;=</dfn></a> <b>(<a href="#NWDPow9e-1">&lt;-U</a>)</b>
+to_term/1
+,to_term/2
+</pre><p>
+
+
+<a name="NWDPow9e-3">The </a><code>from_term</code> function generates a JSON string from an Erlang term.
+<p>
+<pre><a name="NWPow9e-nRuDO-2" href="#NWDPow9e-2"><dfn>&lt;functions&gt;+=</dfn></a> <b>(<a href="#NWDPow9e-1">&lt;-U</a>)</b> <b>[<a href="#NWDPow9e-2">&lt;-</a>D]</b>
+from_term(Term) -&gt;
+    json_emitter:term(Term).
+</pre><p>
+
+
+<a name="NWDPow9e-4">We want to test that the input matches the output.</a>
+<p>
+<pre><a name="NWPow9e-471syO-1" href="#NWDPow9e-4"><dfn>&lt;tests&gt;=</dfn></a> <b>(<a href="#NWDPow9e-1">&lt;-U</a>)</b> <b>[D<a href="#NWDPow9e-5">-&gt;</a>]</b>
+equality_test() -&gt;
+    Input = #{name =&gt; &quot;Mason Staugler&quot;,
+              age =&gt; 35,
+              employed =&gt; true,
+              favorite_foods =&gt; [
+                  &quot;pizza&quot;,
+                  &quot;chicken vindaloo&quot;,
+                  &quot;seltzer&quot;],
+              pet =&gt; #{name =&gt; &quot;Sasha&quot;,
+                       type =&gt; &quot;dog&quot;,
+                       personality =&gt; &quot;pig&quot;}},
+
+    Json_document = from_term(Input),
+
+    % Keys to atoms.
+    Input = to_term(Json_document, [atom_keys]),
+
+    Expected_output = #{&quot;name&quot; =&gt; &quot;Mason Staugler&quot;,
+                        &quot;age&quot; =&gt; 35,
+                        &quot;employed&quot; =&gt; true,
+                        &quot;favorite_foods&quot; =&gt; [
+                             &quot;pizza&quot;,
+                             &quot;chicken vindaloo&quot;,
+                             &quot;seltzer&quot;],
+                        &quot;pet&quot; =&gt; #{&quot;name&quot; =&gt; &quot;Sasha&quot;,
+                                   &quot;type&quot; =&gt; &quot;dog&quot;,
+                                   &quot;personality&quot; =&gt; &quot;pig&quot;}},
+    Converted_term = to_term(Json_document),
+    Expected_output = Converted_term.
+</pre><p>
+
+<a name="NWDPow9e-5">Trailing whitespace should be ignored.</a>
+<p>
+<pre><a name="NWPow9e-471syO-2" href="#NWDPow9e-4"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWDPow9e-1">&lt;-U</a>)</b> <b>[<a href="#NWDPow9e-4">&lt;-</a>D]</b>
+trailing_whitespace_test() -&gt;
+    [&quot;foobar&quot;] = to_term(&quot;[\&quot;foobar\&quot;]\n&quot;).
+</pre>
+
+<ul>
+<li><a href="#NWDPow9e-1"><i>&lt;*&gt;</i></a>: <a href="#NWDPow9e-1">D1</a>
+<li><a href="#NWPow9e-jWllD-1"><i>&lt;exports&gt;</i></a>: <a href="#NWDPow9e-1">U1</a>, <a href="#NWPow9e-jWllD-1">D2</a>
+<li><a href="#NWDPow9e-2"><i>&lt;functions&gt;</i></a>: <a href="#NWDPow9e-1">U1</a>, <a href="#NWDPow9e-2">D2</a>, <a href="#NWDPow9e-3">D3</a>
+<li><a href="#NWDPow9e-4"><i>&lt;tests&gt;</i></a>: <a href="#NWDPow9e-1">U1</a>, <a href="#NWDPow9e-4">D2</a>, <a href="#NWDPow9e-5">D3</a>
+</ul>
+<ul>
+</ul>
+
+<p>
+    Copyright 2014 Mason Staugler
+</p>

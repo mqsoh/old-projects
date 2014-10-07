@@ -1,0 +1,614 @@
+<!doctype html>
+<title>./src/json_parser.erl.nw</title>
+<style>
+    body {
+        background-color: #eeeeec;
+        color: #2e3436;
+    }
+    a {
+        color: #204a87;
+    }
+    pre {
+        padding: 10px;
+        background-color: #2e3436;
+        color: #eeeeec;
+    }
+    pre a {
+        color: #729fcf;
+    }
+</style>
+<!-- this file was generated automatically by noweave; better not edit it-->
+<h1><a name="NWD4XC64i-1">json_parser.erl</a></h1>
+<address>Mason Staugler</address>
+<!--title goes here--><p>
+<h2>Module</h2>
+<p>
+This module will provide a single function to convert a JSON string into an
+Erlang term.
+<p>
+<pre><a name="NW4XC64i-1p0Y9w-1" href="#NWD4XC64i-1"><dfn>&lt;*&gt;=</dfn></a>
+%% This file was generated from json_parser.erl.nw.
+-module(json_parser).
+-export([
+    <a name="NW4XC64i-1p0Y9w-1-u1" href="#NWD4XC64i-P"><i>&lt;exports&gt;</i></a>
+]).
+
+-ifdef(TEST).
+-include_lib(&quot;eunit/include/eunit.hrl&quot;).
+-endif.
+
+<a name="NW4XC64i-1p0Y9w-1-u2" href="#NWD4XC64i-4"><i>&lt;internal functions&gt;</i></a>
+
+-ifdef(TEST).
+<a name="NW4XC64i-1p0Y9w-1-u3" href="#NWD4XC64i-2"><i>&lt;tests&gt;</i></a>
+-endif.
+</pre><p>
+
+
+<h2>Number</h2>
+<p>
+<h3>Tests</h3>
+<p>
+This is being converted to a literate program, so I'm not sure exactly how I
+<a name="NWD4XC64i-2">approached this originally. I know that I started with number conversions</a>
+because they are the most difficult.
+<p>
+All the internal functions will take an input string and a list of options.
+They will yield an Erlang term and the rest of the input (or an empty string).
+<p>
+A JSON document is an object or list. Since a number is a value in either of
+those data types, the input string will always contain a trailing character.
+<p>
+<pre><a name="NW4XC64i-471syO-1" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[D<a href="#NWD4XC64i-3">-&gt;</a>]</b>
+unterminated_number_test() -&gt;
+    ok = try number(&quot;1234&quot;, []) of
+        _ -&gt; will_not_happen
+    catch
+        error:unterminated_number -&gt; ok
+    end.
+</pre><p>
+
+<a name="NWD4XC64i-3">These test strings have various trailing characters just to illustrate that</a>
+it doesn't matter what sort of character it is. It only needs to be something
+invalid for a number.
+<p>
+<pre><a name="NW4XC64i-471syO-2" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-2">&lt;-</a>D<a href="#NWD4XC64i-8">-&gt;</a>]</b>
+various_numbers_test() -&gt;
+    {0.1234, &quot;,&quot;} = number(&quot;0.1234,&quot;, []),
+    {1.234, &quot;}&quot;} = number(&quot;0.1234e1}&quot;, []),
+    {1.234, &quot;\n&quot;} = number(&quot;0.1234E1\n&quot;, []),
+    {1.234, &quot;]&quot;} = number(&quot;0.1234e+1]&quot;, []),
+    {0.01234, &quot;]&quot;} = number(&quot;0.1234e-1]&quot;, []),
+    {0, &quot;]&quot;} = number(&quot;0]&quot;, []),
+    {-1, &quot;]&quot;} = number(&quot;-1]&quot;, []),
+    {1, &quot;]&quot;} = number(&quot;1]&quot;, []),
+    {1234, &quot;]&quot;} = number(&quot;1234]&quot;, []),
+    {12340, &quot;]&quot;} = number(&quot;1234e1]&quot;, []),
+    {12340, &quot;]&quot;} = number(&quot;1234E1]&quot;, []),
+    {12340, &quot;]&quot;} = number(&quot;1234e+1]&quot;, []),
+    {123.4, &quot;]&quot;} = number(&quot;1234e-1]&quot;, []),
+    {1234, &quot;]&quot;} = number(&quot;12340e-1]&quot;, []).
+</pre><p>
+
+<h3><a name="NWD4XC64i-4">Definitions</a></h3>
+<p>
+The <code>number</code> function doesn't use any options. Delegating to <code>number1</code>
+lets us ignore them (the empty list given to <code>number1</code> initializes the
+accumulator.
+<p>
+<pre><a name="NW4XC64i-3L2f29-1" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[D<a href="#NWD4XC64i-5">-&gt;</a>]</b>
+number(Input, _Options) -&gt;
+    number1(Input, []).
+</pre><p>
+
+<a name="NWD4XC64i-5">Throw an error if we've run out of input without finding the end of the</a>
+number.
+<p>
+<pre><a name="NW4XC64i-3L2f29-2" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-4">&lt;-</a>D<a href="#NWD4XC64i-6">-&gt;</a>]</b>
+number1([], _Acc) -&gt;
+    error(unterminated_number);
+
+</pre><p><a name="NWD4XC64i-6">This bit consumes number-like characters and dumps them in to the</a>
+accumulator. This is pretty naive since it allows multiple <code>e</code>s, <code>+</code>s, etc.
+There should probably be some validation, but for now I'm just trying to parse
+correct input correctly. Also, maybe validation is a separate concern. I saw a
+talk that Joe Armstrong gave where he brought up services that use UBF
+(https://www.sics.se/&nbsp;joe/ubf/site/home.html) to validate communication between
+two parties.
+<p>
+<pre><a name="NW4XC64i-3L2f29-3" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-5">&lt;-</a>D<a href="#NWD4XC64i-7">-&gt;</a>]</b>
+number1([Char | Rest], Acc) when (Char &gt;= 16#30 andalso Char =&lt; 16#39);% 0 - 9
+                                  Char == 16#2b;% +
+                                  Char == 16#2d;% -
+                                  Char == 16#2e;% .
+                                  Char == 16#45;% E
+                                  Char == 16#65 -&gt;% e
+    number1(Rest, [Char | Acc]);
+</pre><p>
+
+<a name="NWD4XC64i-7">Convert the string to a number. Unfortunately, I don't quite remember how I</a>
+got to this. I think the main issue that it solves is that JSON supports
+exponents for integers, but Erlang must have it as a float (thus the string
+replace on &quot;e&quot; to &quot;.0e&quot;).
+<p>
+<pre><a name="NW4XC64i-3L2f29-4" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-6">&lt;-</a>D<a href="#NWD4XC64i-D">-&gt;</a>]</b>
+number1(Rest, Acc) -&gt;
+    Number_string = lists:reverse(Acc),
+    % Try making it a float.
+    Number = case string:to_float(Number_string) of
+        {error, no_float} -&gt;
+            % Failed float; try an integer.
+            try list_to_integer(Number_string) of
+                Any -&gt; Any
+            catch
+                error:badarg -&gt;
+                    % Oops. Failed integer, too. It might be a converstion
+                    % problem between JSON and Erlang's way of dealing with
+                    % exponents. This will fix it, but...
+                    {Float, _Rest} = string:to_float(re:replace(string:to_lower(Number_string), &quot;e&quot;, &quot;.0e&quot;, [{return, list}])),
+                    Integer = trunc(Float),
+                    % ...now we don't know if it's an integer or float.
+                    case Integer == Float of
+                        true -&gt; Integer;
+                        false -&gt; Float
+                    end
+            end;
+        {Float, _Rest} -&gt; Float
+    end,
+    {Number, Rest}.
+</pre><p>
+
+
+<h2>String</h2>
+<p>
+<a name="NWD4XC64i-8">The next section I implemented was strings. It's pretty easy with the escaping,</a>
+but the UTF-16 surrogate pairs were an interesting thing I learned about.
+<p>
+<h3>Tests</h3>
+<p>
+Strings will always be terminated by an unescaped <code>&quot;</code>. If they aren't, all
+the input will be consumed and we'll create an error.
+<p>
+<pre><a name="NW4XC64i-471syO-3" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-3">&lt;-</a>D<a href="#NWD4XC64i-9">-&gt;</a>]</b>
+unterminated_string_test() -&gt;
+    ok = try string(&quot;foobar&quot;, []) of
+        _ -&gt; will_not_happen
+    catch
+        error:unterminated_string -&gt; ok
+    end.
+</pre><p>
+
+Test some simple strings and escaped characters. Unicode code points will be
+tested below. The other supported escaped characters are:
+<p>
+<ul>
+<li>quotation mark: &quot;
+<li>reverse solidus: (backslash; the <code>l2h</code> filter with
+<a name="NWD4XC64i-9">noweb doesn't print it, but latex2pdf does -- irritating)</a>
+<li>solidus: /
+<li>backspace: b
+<li>formfeed: f
+<li>newline: n
+<li>carriage return: r
+<li>horizontal tab: t
+</ul>
+<p>
+<pre><a name="NW4XC64i-471syO-4" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-8">&lt;-</a>D<a href="#NWD4XC64i-A">-&gt;</a>]</b>
+simple_strings_test() -&gt;
+    {&quot;foobar&quot;, []} = string(&quot;foobar\&quot;&quot;, []),
+    {&quot;\\&quot;, []} = string(&quot;\\\\\&quot;&quot;, []),
+    {&quot;\&quot;.\\./.\b.\f.\n.\r.\t.&quot;, []} = string(&quot;\\\&quot;.\\.\\/.\\b.\\f.\\n.\\r.\\t.\&quot;&quot;, []).
+</pre><p>
+
+
+<a name="NWD4XC64i-A">We should accept literal UTF-8 characters in strings. http://en.wikipedia.org/wiki/JSON#Data_portability_issues</a>
+<p>
+<pre><a name="NW4XC64i-471syO-5" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-9">&lt;-</a>D<a href="#NWD4XC64i-B">-&gt;</a>]</b>
+literal_unicode_string_test() -&gt;
+    {&quot;😂&quot;, []} = string(&quot;😂\&quot;&quot;, []).
+</pre><p>
+
+
+<a name="NWD4XC64i-B">And anything in the basic multilingual plane. The two characters ensure that</a>
+we don't misinterpret them as a UTF-16 surrogate pair.
+<p>
+<pre><a name="NW4XC64i-471syO-6" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-A">&lt;-</a>D<a href="#NWD4XC64i-C">-&gt;</a>]</b>
+multilingual_plane_string_test() -&gt;
+    {&quot;￦&quot;, []} = string(&quot;\\uFFE6\&quot;&quot;, []),
+    {&quot;￦￦&quot;, []} = string(&quot;\\uFFE6\\uFFE6\&quot;&quot;, []).
+</pre><p>
+
+
+<a name="NWD4XC64i-C">I'll talk more about about surrogate pairs when I implement it. The treble</a>
+clef is within the range of characters that can (or must?) be represented as
+UTF-16 surrogate pairs. I forget exactly why I chose it. The won sign just
+ensures again that we don't get confused between single characters and
+surrogate pairs.
+<p>
+<pre><a name="NW4XC64i-471syO-7" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-B">&lt;-</a>D<a href="#NWD4XC64i-K">-&gt;</a>]</b>
+utf_16_surrogate_pairs_test() -&gt;
+    {&quot;𝄞&quot;, []} = string(&quot;\\ud834\\udd1e\&quot;&quot;, []),
+    {&quot;￦𝄞￦&quot;, []} = string(&quot;\\uFFE6\\ud834\\udd1e\\uffe6\&quot;&quot;, []).
+</pre><p>
+
+
+<h3><a name="NWD4XC64i-D">Definitions</a></h3>
+<p>
+Like the <code>number</code> function, the <code>string</code> function also doesn't use any
+options. We'll delegate to <code>string1</code>.
+<p>
+<pre><a name="NW4XC64i-3L2f29-5" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-7">&lt;-</a>D<a href="#NWD4XC64i-E">-&gt;</a>]</b>
+string(Input, _Options) -&gt;
+    string1(Input, []).
+</pre><p>
+
+
+<a name="NWD4XC64i-E">We've failed to find the termination of the string.</a>
+<p>
+<pre><a name="NW4XC64i-3L2f29-6" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-D">&lt;-</a>D<a href="#NWD4XC64i-F">-&gt;</a>]</b>
+string1([], _Acc) -&gt;
+    error(unterminated_string);
+</pre><p>
+
+
+<a name="NWD4XC64i-F">The escaped characters are pretty simple -- just replace them with the</a>
+literals.
+<p>
+<pre><a name="NW4XC64i-3L2f29-7" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-E">&lt;-</a>D<a href="#NWD4XC64i-G">-&gt;</a>]</b>
+string1([$\\, $&quot; | Rest], Acc) -&gt; string1(Rest, [$&quot; | Acc]);
+string1([$\\, $\\ | Rest], Acc) -&gt; string1(Rest, [$\\ | Acc]);
+string1([$\\, $/ | Rest], Acc) -&gt; string1(Rest, [$/ | Acc]);
+string1([$\\, $b | Rest], Acc) -&gt; string1(Rest, [$\b | Acc]);
+string1([$\\, $f | Rest], Acc) -&gt; string1(Rest, [$\f | Acc]);
+string1([$\\, $n | Rest], Acc) -&gt; string1(Rest, [$\n | Acc]);
+string1([$\\, $r | Rest], Acc) -&gt; string1(Rest, [$\r | Acc]);
+string1([$\\, $t | Rest], Acc) -&gt; string1(Rest, [$\t | Acc]);
+</pre><p>
+
+The algorithm to convert surrogate pairs is pretty simple (though it was new
+to me and very enlightening when I figured it out). It's the reverse of the
+steps enumerated in the Wikipedia article
+(http://en.wikipedia.org/wiki/UTF-16#Code_points_U.2B010000_to_U.2B10FFFF). We
+need to:
+<p>
+<ol>
+<li><a name="NWD4XC64i-G">extract the bits from the first item in the pair (</a><code>lead surrogate</code>)
+and subtract <code>0xD800</code>,
+<li>extract the bits from the second item in the pair (<code>tail
+        surrogate</code>) and subtract <code>0xDC00</code>, and
+<li>concatenate the bits into a 20-bit number and add <code>0x010000</code>.
+</ol>
+<p>
+<pre><a name="NW4XC64i-3L2f29-8" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-F">&lt;-</a>D<a href="#NWD4XC64i-H">-&gt;</a>]</b>
+string1([$\\, $u, U1, U2, U3, U4, $\\, $u, L1, L2, L3, L4 | Rest], Acc) -&gt;
+    Upper_offset = list_to_integer([U1, U2, U3, U4], 16),
+
+    case (Upper_offset &lt; 16#d800) or (Upper_offset &gt; 16#dbff) of
+        true -&gt;
+            % This is actually two sequential characters, not a surrogate pair.
+            % Push the second character back on to the input and reprocess.
+            string1([$\\, $u, L1, L2, L3, L4 | Rest], [Upper_offset | Acc]);
+        false -&gt;
+            Lower_offset = list_to_integer([L1, L2, L3, L4], 16),
+            Upper = Upper_offset - 16#d800,
+            Lower = Lower_offset - 16#dc00,
+            &lt;&lt;Codepoint_offset:20/integer&gt;&gt; = &lt;&lt;Upper:10/integer, Lower:10/integer&gt;&gt;,
+            Codepoint = Codepoint_offset + 16#010000,
+            string1(Rest, [Codepoint | Acc])
+    end;
+</pre><p>
+
+
+<a name="NWD4XC64i-H">This is a single escaped Unicode code point.</a>
+<p>
+<pre><a name="NW4XC64i-3L2f29-9" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-G">&lt;-</a>D<a href="#NWD4XC64i-I">-&gt;</a>]</b>
+string1([$\\, $u, C1, C2, C3, C4 | Rest], Acc) -&gt;
+    string1(Rest, [list_to_integer([C1, C2, C3, C4], 16) | Acc]);
+</pre><p>
+
+
+<a name="NWD4XC64i-I">We've come across a literal quote -- the end of the string! I think maybe if</a>
+I was writing this as a literate program initially, I would have put this
+closer to the <code>unterminated_string</code> error.
+<p>
+
+<pre><a name="NW4XC64i-3L2f29-A" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-H">&lt;-</a>D<a href="#NWD4XC64i-J">-&gt;</a>]</b>
+string1([$\&quot; | Rest], Acc) -&gt;
+    {lists:reverse(Acc), Rest};
+</pre><p>
+
+
+<a name="NWD4XC64i-J">The fallback condition is a normal character in the string and we'll just add</a>
+it to the accumulator.
+<p>
+<pre><a name="NW4XC64i-3L2f29-B" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-I">&lt;-</a>D<a href="#NW4XC64i-3L2f29-C">-&gt;</a>]</b>
+string1([Char | Rest], Acc) -&gt;
+    string1(Rest, [Char | Acc]).
+</pre><p>
+
+
+<h2>Value</h2>
+<p>
+A value is one of
+<p>
+<ul>
+<li><code>true</code>
+<li><code>false</code>
+<li><code>null</code>
+<li>number
+<li>string
+<li>object
+<li>array
+</ul>
+<p>
+<a name="NWD4XC64i-K">We'll implement the object and array later. The </a><code>value</code> function must come
+first because they are both collections of the other types.
+<p>
+In my initial implementation of this, I discovered that malformed input
+generated errors that looked like a bad number because the fallback was for
+numbers. This time we'll detect numbers properly and throw an error as the
+fallback.
+<p>
+<pre><a name="NW4XC64i-471syO-8" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-C">&lt;-</a>D<a href="#NWD4XC64i-Q">-&gt;</a>]</b>
+<a name="NW4XC64i-471syO-8-u1" href="#NWD4XC64i-L"><i>&lt;value tests&gt;</i></a>
+</pre><p>
+
+<pre><a name="NW4XC64i-3L2f29-C" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-J">&lt;-</a>D<a href="#NWD4XC64i-S">-&gt;</a>]</b>
+<a name="NW4XC64i-3L2f29-C-u1" href="#NW4XC64i-2OsPql-1"><i>&lt;value function&gt;</i></a>
+value(_Input, _Options) -&gt;
+    error(unknown_value).
+</pre><p>
+
+<a name="NWD4XC64i-L">The </a><code>true</code>, <code>false</code>, and <code>null</code> literals are easiest. The input string
+will end with either an array or object terminator but isn't important until we
+implement those types.
+<p>
+<pre><a name="NW4XC64i-3A1ZEi-1" href="#NWD4XC64i-L"><dfn>&lt;value tests&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-K">&lt;-U</a>)</b> <b>[D<a href="#NWD4XC64i-M">-&gt;</a>]</b>
+simple_value_test() -&gt;
+    {true, &quot;]&quot;} = value(&quot;true]&quot;, []),
+    {false, &quot;]&quot;} = value(&quot;false]&quot;, []),
+    {null, &quot;]&quot;} = value(&quot;null]&quot;, []).
+</pre><p>
+
+<pre><a name="NW4XC64i-2OsPql-1" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[D<a href="#NW4XC64i-2OsPql-2">-&gt;</a>]</b>
+value([$t, $r, $u, $e | Rest], _Options) -&gt;
+    {true, Rest};
+value([$f, $a, $l, $s, $e | Rest], _Options) -&gt;
+    {false, Rest};
+value([$n, $u, $l, $l | Rest], _Options) -&gt;
+    {null, Rest};
+</pre><p>
+
+<a name="NWD4XC64i-M">When processing the input, a quote marks the start of a string. However, a</a>
+string still must be contained in an object or array, so we need the end quote
+and another terminator.
+<p>
+<pre><a name="NW4XC64i-3A1ZEi-2" href="#NWD4XC64i-L"><dfn>&lt;value tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-K">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-L">&lt;-</a>D<a href="#NWD4XC64i-N">-&gt;</a>]</b>
+string_value_test() -&gt;
+    {&quot;foobar&quot;, &quot;]&quot;} = value(&quot;\&quot;foobar\&quot;]&quot;, []).
+</pre><p>
+
+<pre><a name="NW4XC64i-2OsPql-2" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-2OsPql-1">&lt;-</a>D<a href="#NW4XC64i-2OsPql-3">-&gt;</a>]</b>
+value([$&quot; | Rest], Options) -&gt;
+    string(Rest, Options);
+</pre><p>
+
+
+<a name="NWD4XC64i-N">A number is a value and starts with a </a><code>-</code> or a digit. Unlike the other
+types, we need to pop the character we used to detect it back on to the input.
+<p>
+<pre><a name="NW4XC64i-3A1ZEi-3" href="#NWD4XC64i-L"><dfn>&lt;value tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-K">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-M">&lt;-</a>D<a href="#NWD4XC64i-O">-&gt;</a>]</b>
+number_value_test() -&gt;
+    {0.1234, &quot;]&quot;} = value(&quot;0.1234]&quot;, []).
+</pre><p>
+
+<pre><a name="NW4XC64i-2OsPql-3" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-2OsPql-2">&lt;-</a>D<a href="#NW4XC64i-2OsPql-4">-&gt;</a>]</b>
+value([$- | Rest], Options) -&gt;
+    number([$- | Rest], Options);
+value([Char | Rest], Options) when Char &gt;= 16#30 andalso Char =&lt; 16#39 -&gt; % A digit 0 - 9.
+    number([Char | Rest], Options);
+</pre><p>
+
+
+<a name="NWD4XC64i-O">We should ignore white space. I suspect that this is naive, but...never say</a>
+die!
+<p>
+<pre><a name="NW4XC64i-3A1ZEi-4" href="#NWD4XC64i-L"><dfn>&lt;value tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-K">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-N">&lt;-</a>D]</b>
+ignore_white_space_value_test() -&gt;
+    {true, &quot;]&quot;} = value(&quot;   \n \t  \r\n  true]&quot;, []).
+</pre><p>
+
+<pre><a name="NW4XC64i-2OsPql-4" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-2OsPql-3">&lt;-</a>D<a href="#NWD4XC64i-R">-&gt;</a>]</b>
+value([Char | Rest], Options) when
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t -&gt;
+    value(Rest, Options);
+</pre><p>
+
+
+<a name="NWD4XC64i-P">Export the </a><code>value</code> function.
+<p><pre><a name="NW4XC64i-jWllD-1" href="#NWD4XC64i-P"><dfn>&lt;exports&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b>
+value/2
+</pre><p>
+
+
+<h2>Array</h2>
+<p>
+<a name="NWD4XC64i-Q">Arrays are values that are a list of any other value. They are contained in</a>
+<code>[</code> and <code>]</code> and elements are separated by <code>,</code> which can be surrounded by
+arbitrary white space.
+<p>
+The <code>[</code> will tell the value function to consume an array, so that character
+is consumed before processing starts. That's why the input is skipping the
+<code>[</code>.
+<p>
+<pre><a name="NW4XC64i-471syO-9" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-K">&lt;-</a>D<a href="#NWD4XC64i-U">-&gt;</a>]</b>
+<a name="NW4XC64i-471syO-9-u1" href="#NW4XC64i-1Ort6b-1"><i>&lt;array tests&gt;</i></a>
+</pre><pre><a name="NW4XC64i-1Ort6b-1" href="#NW4XC64i-1Ort6b-1"><dfn>&lt;array tests&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-Q">&lt;-U</a>)</b>
+array_test() -&gt;
+    {[true], &quot;&quot;} = array(&quot;true]&quot;, []),
+    {[true, false, null], &quot;&quot;} = array(&quot;true, false, null]&quot;, []),
+    {[true, false, null], &quot;&quot;} = array(&quot;\r\n\ttrue  ,\n    false\n,\n    \tnull\n  ]&quot;, []),
+    {[true, false, &quot;Foo bar baz, buzz.&quot;], &quot;&quot;} = array(&quot;true, false, \&quot;Foo bar baz, buzz.\&quot;]&quot;, []).
+</pre><p>
+
+<a name="NWD4XC64i-R">An array starts with a </a><code>[</code> and we'll need to augment <code>value</code> to delegate
+to <code>array</code>.
+<p>
+<pre><a name="NW4XC64i-2OsPql-5" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-2OsPql-4">&lt;-</a>D<a href="#NWD4XC64i-V">-&gt;</a>]</b>
+value([$[ | Rest], Options) -&gt;
+    array(Rest, Options);
+</pre><p>
+
+<a name="NWD4XC64i-S">When we get a </a><code>]</code>, the array is complete. This is the terminator.
+<p>
+<pre><a name="NW4XC64i-3L2f29-D" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-3L2f29-C">&lt;-</a>D<a href="#NW4XC64i-3L2f29-E">-&gt;</a>]</b>
+<a name="NW4XC64i-3L2f29-D-u1" href="#NW4XC64i-zVHJX-1"><i>&lt;array function&gt;</i></a>
+</pre><pre><a name="NW4XC64i-zVHJX-1" href="#NW4XC64i-zVHJX-1"><dfn>&lt;array function&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-S">&lt;-U</a>)</b> <b>[D<a href="#NWD4XC64i-T">-&gt;</a>]</b>
+array(Input, Options) -&gt;
+    array(Input, [], Options).
+
+array([$] | Rest], Acc, _Options) -&gt;
+    {lists:reverse(Acc), Rest};
+</pre><p>
+
+<a name="NWD4XC64i-T">For every element in the array, </a><code>value</code> will be called. This means that we
+can effectively ignore <code>,</code>. In the following array, the number is consumed,
+the <code>array</code> function ignores the <code>,</code> and white space. It then identifies
+another value, which gets consumed, etc.
+<p>
+<pre>
+[12345, &quot;foobar&quot;]
+</pre>
+
+<pre><a name="NW4XC64i-zVHJX-2" href="#NW4XC64i-zVHJX-1"><dfn>&lt;array function&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-S">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-zVHJX-1">&lt;-</a>D]</b>
+array([Char | Rest], Acc, Options) when
+    Char == $,;
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t -&gt;
+    array(Rest, Acc, Options);
+
+array(Rest, Acc, Options) -&gt;
+    {Value, Rest1} = value(Rest, Options),
+    array(Rest1, [Value | Acc], Options).
+</pre><p>
+
+
+<h2><a name="NWD4XC64i-U">Object</a></h2>
+<p>
+<pre><a name="NW4XC64i-471syO-A" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-Q">&lt;-</a>D<a href="#NWD4XC64i-X">-&gt;</a>]</b>
+<a name="NW4XC64i-471syO-A-u1" href="#NW4XC64i-bvAjp-1"><i>&lt;object tests&gt;</i></a>
+</pre><pre><a name="NW4XC64i-bvAjp-1" href="#NW4XC64i-bvAjp-1"><dfn>&lt;object tests&gt;=</dfn></a> <b>(<a href="#NWD4XC64i-U">&lt;-U</a>)</b>
+object_test() -&gt;
+    {#{&quot;foo&quot; := &quot;bar&quot;}, &quot;&quot;} = object(&quot;\&quot;foo\&quot;: \&quot;bar\&quot;}&quot;, []),
+    {#{&quot;foo&quot; := &quot;bar&quot;, &quot;baz&quot; := [&quot;b&quot;, &quot;u&quot;, &quot;zz&quot;]}, &quot;&quot;} = object(
+        &quot;  \&quot;foo\&quot; : \&quot;bar\&quot;,\n   \&quot;baz\&quot;: \n[\n\t  \&quot;b\&quot; , \&quot;u\&quot;, \&quot;zz\&quot;\n]}&quot;, []),
+    {#{&quot;total_rows&quot; := 0, &quot;offset&quot; := 0, &quot;rows&quot; := []}, &quot;\n&quot;} = object(
+        &quot;\&quot;total_rows\&quot;:0,\&quot;offset\&quot;:0,\&quot;rows\&quot;:[\r\n\r\n]}\n&quot;, []).
+</pre><p>
+
+<a name="NWD4XC64i-V">Objects start and end with a single character and each key-value pair is</a>
+separated by a comma. This is the same as arrays and it's possible that there
+is a nice, elegant abstraction that I'm missing.
+<p>
+First we'll augment <code>value</code> to handle objects.
+<p>
+<pre><a name="NW4XC64i-2OsPql-6" href="#NW4XC64i-2OsPql-1"><dfn>&lt;value function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-C">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-R">&lt;-</a>D]</b>
+value([${ | Rest], Options) -&gt;
+    object(Rest, Options);
+</pre><p>
+
+<pre><a name="NW4XC64i-3L2f29-E" href="#NWD4XC64i-4"><dfn>&lt;internal functions&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-S">&lt;-</a>D]</b>
+<a name="NW4XC64i-3L2f29-E-u1" href="#NW4XC64i-GZgFw-1"><i>&lt;object function&gt;</i></a>
+</pre><pre><a name="NW4XC64i-GZgFw-1" href="#NW4XC64i-GZgFw-1"><dfn>&lt;object function&gt;=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-E">&lt;-U</a>)</b> <b>[D<a href="#NWD4XC64i-W">-&gt;</a>]</b>
+object(Input, Options) -&gt;
+    object(Input, [], Options).
+
+object([$} | Rest], Object_list, _Options) -&gt;
+    {maps:from_list(Object_list), Rest};
+object([Char | Rest], Object_list, Options) when
+    Char == $,;
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t -&gt;
+    object(Rest, Object_list, Options);
+</pre><p>
+
+When we come across a <code>&quot;</code>, this is the signal for a new key-value pair. The
+<code>case</code> statement in the key extraction is the only place we use options. If
+someone passes the atom <code>atom_keys</code>, the objects keys are converted to atoms.
+(This may not be useful. When Erlang's syntax bothered me, I thought atom keys
+were necessary, but I'm getting used to a lot of things about the language.)
+<p>
+The regex replaces a different implementation I'd done, but it's verbose and I
+have no proof that the regex is any worse.
+<p>
+The old <code>Rest2</code> looked like this (it didn't even ignore all the requisite
+white space):
+<p>
+<pre>
+<a name="NWD4XC64i-W">Rest2 = lists:foldl(</a>
+    fun (Unwanted, String) -&gt;
+        string:strip(String, left, Unwanted)
+    end,
+    Rest1,
+    [$ , $:, $ ])
+</pre>
+
+<pre><a name="NW4XC64i-GZgFw-2" href="#NW4XC64i-GZgFw-1"><dfn>&lt;object function&gt;+=</dfn></a> <b>(<a href="#NW4XC64i-3L2f29-E">&lt;-U</a>)</b> <b>[<a href="#NW4XC64i-GZgFw-1">&lt;-</a>D]</b>
+object([$&quot; | Rest], Object_list, Options) -&gt;
+    {Key, Rest1} = begin
+        {String_key, Rest1} = string(Rest, Options),
+        case lists:member(atom_keys, Options) of
+            true -&gt; {list_to_atom(String_key), Rest1};
+            _ -&gt; {String_key, Rest1}
+        end
+    end,
+    Rest2 = re:replace(Rest1, &quot;^[:\\s]+&quot;, &quot;&quot;, [global, {return, list}]),
+    {Value, Rest3} = value(Rest2, Options),
+    object(Rest3, [{Key, Value} | Object_list], Options).
+</pre><p>
+
+
+<h2><a name="NWD4XC64i-X">Finally</a></h2>
+<p>
+I just want to make a test to pull it all together.
+<p>
+<pre><a name="NW4XC64i-471syO-B" href="#NWD4XC64i-2"><dfn>&lt;tests&gt;+=</dfn></a> <b>(<a href="#NWD4XC64i-1">&lt;-U</a>)</b> <b>[<a href="#NWD4XC64i-U">&lt;-</a>D]</b>
+final_test() -&gt;
+    {#{&quot;number&quot; := 1230000,
+       &quot;string&quot; := &quot;foobar&quot;,
+        &quot;array&quot; := [true, false, null],
+        &quot;nested_object&quot; := #{&quot;a&quot; := &quot;b&quot;}}, &quot;&quot;} =
+    value(&quot;{\&quot;number\&quot;: 123e4,
+            \&quot;string\&quot;: \&quot;foobar\&quot;,
+            \&quot;array\&quot;: [true,
+                        false,
+                        null],
+            \&quot;nested_object\&quot;: {
+                \&quot;a\&quot;: \&quot;b\&quot;}}&quot;, []).
+</pre>
+
+<ul>
+<li><a href="#NWD4XC64i-1"><i>&lt;*&gt;</i></a>: <a href="#NWD4XC64i-1">D1</a>
+<li><a href="#NW4XC64i-zVHJX-1"><i>&lt;array function&gt;</i></a>: <a href="#NWD4XC64i-S">U1</a>, <a href="#NW4XC64i-zVHJX-1">D2</a>, <a href="#NWD4XC64i-T">D3</a>
+<li><a href="#NW4XC64i-1Ort6b-1"><i>&lt;array tests&gt;</i></a>: <a href="#NWD4XC64i-Q">U1</a>, <a href="#NW4XC64i-1Ort6b-1">D2</a>
+<li><a href="#NWD4XC64i-P"><i>&lt;exports&gt;</i></a>: <a href="#NWD4XC64i-1">U1</a>, <a href="#NWD4XC64i-P">D2</a>
+<li><a href="#NWD4XC64i-4"><i>&lt;internal functions&gt;</i></a>: <a href="#NWD4XC64i-1">U1</a>, <a href="#NWD4XC64i-4">D2</a>, <a href="#NWD4XC64i-5">D3</a>, <a href="#NWD4XC64i-6">D4</a>, <a href="#NWD4XC64i-7">D5</a>, <a href="#NWD4XC64i-D">D6</a>, <a href="#NWD4XC64i-E">D7</a>, <a href="#NWD4XC64i-F">D8</a>, <a href="#NWD4XC64i-G">D9</a>, <a href="#NWD4XC64i-H">D10</a>, <a href="#NWD4XC64i-I">D11</a>, <a href="#NWD4XC64i-J">D12</a>, <a href="#NW4XC64i-3L2f29-C">D13</a>, <a href="#NWD4XC64i-S">D14</a>, <a href="#NW4XC64i-3L2f29-E">D15</a>
+<li><a href="#NW4XC64i-GZgFw-1"><i>&lt;object function&gt;</i></a>: <a href="#NW4XC64i-3L2f29-E">U1</a>, <a href="#NW4XC64i-GZgFw-1">D2</a>, <a href="#NWD4XC64i-W">D3</a>
+<li><a href="#NW4XC64i-bvAjp-1"><i>&lt;object tests&gt;</i></a>: <a href="#NWD4XC64i-U">U1</a>, <a href="#NW4XC64i-bvAjp-1">D2</a>
+<li><a href="#NWD4XC64i-2"><i>&lt;tests&gt;</i></a>: <a href="#NWD4XC64i-1">U1</a>, <a href="#NWD4XC64i-2">D2</a>, <a href="#NWD4XC64i-3">D3</a>, <a href="#NWD4XC64i-8">D4</a>, <a href="#NWD4XC64i-9">D5</a>, <a href="#NWD4XC64i-A">D6</a>, <a href="#NWD4XC64i-B">D7</a>, <a href="#NWD4XC64i-C">D8</a>, <a href="#NWD4XC64i-K">D9</a>, <a href="#NWD4XC64i-Q">D10</a>, <a href="#NWD4XC64i-U">D11</a>, <a href="#NWD4XC64i-X">D12</a>
+<li><a href="#NW4XC64i-2OsPql-1"><i>&lt;value function&gt;</i></a>: <a href="#NW4XC64i-3L2f29-C">U1</a>, <a href="#NW4XC64i-2OsPql-1">D2</a>, <a href="#NW4XC64i-2OsPql-2">D3</a>, <a href="#NW4XC64i-2OsPql-3">D4</a>, <a href="#NW4XC64i-2OsPql-4">D5</a>, <a href="#NWD4XC64i-R">D6</a>, <a href="#NWD4XC64i-V">D7</a>
+<li><a href="#NWD4XC64i-L"><i>&lt;value tests&gt;</i></a>: <a href="#NWD4XC64i-K">U1</a>, <a href="#NWD4XC64i-L">D2</a>, <a href="#NWD4XC64i-M">D3</a>, <a href="#NWD4XC64i-N">D4</a>, <a href="#NWD4XC64i-O">D5</a>
+</ul>
+<ul>
+</ul>
+
+<p>
+    Copyright 2014 Mason Staugler
+</p>
