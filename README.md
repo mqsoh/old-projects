@@ -82,9 +82,9 @@ module.
 
 ```{.Dockerfile name="Install LFE."}
 RUN cd /usr/local/lib/erlang/lib \
-    && git clone https://github.com/lfe/lfe.git \
+    && git clone https://github.com/rvirding/lfe.git \
     && cd /usr/local/lib/erlang/lib/lfe \
-    && git checkout v0.9.0 \
+    && git checkout v0.10.1 \
     && make compile install
 ```
 

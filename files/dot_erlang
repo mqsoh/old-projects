@@ -1,5 +1,5 @@
 % This file was generated from the README.md.
-io:format("Starting beam reloader.~n").
+io:format("~nStarting beam reloader.~n").
 register(lfe_watcher_reloader, spawn(fun F() ->
     receive
         Module_name ->
