@@ -6,8 +6,8 @@ inotifywait --monitor --event close_write --format '%w%f' ebin | while read file
             module_name=$(basename "$file" .beam)
             erlang_code="{lfe_watcher_reloader, list_to_atom(\"lfe_watcher_shell@\" ++ net_adm:localhost())} ! \"$module_name\""
 
-            erl -noshell -sname lfe_watcher_inotify -eval "$erlang_code" -s init stop
+            erl -noshell -sname lfe_watcher_inotify_$RANDOM -eval "$erlang_code" -s init stop &
             ;;
     esac
 done &
-lfe -sname lfe_watcher_shell -pa ebin
+lfe -start_lfe_watcher_reloader -sname lfe_watcher_shell -pa ebin

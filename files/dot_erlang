@@ -1,12 +1,16 @@
 % This file was generated from the README.md.
-io:format("~nStarting beam reloader.~n").
-register(lfe_watcher_reloader, spawn(fun F() ->
-    receive
-        Module_name ->
-            io:format("Reloading: ~s~n", [Module_name]),
-            Module = list_to_atom(Module_name),
-            code:purge(Module),
-            code:load_file(Module)
-    end,
-    F()
-end)).
+case init:get_argument(start_lfe_watcher_reloader) of
+    {ok, _} ->
+        io:format("~nStarting beam reloader.~n"),
+        register(lfe_watcher_reloader, spawn(fun F() ->
+            receive
+                Module_name ->
+                    io:format("Reloading: ~s~n", [Module_name]),
+                    Module = list_to_atom(Module_name),
+                    code:purge(Module),
+                    code:load_file(Module)
+            end,
+            F()
+        end));
+    _ -> ok
+end.

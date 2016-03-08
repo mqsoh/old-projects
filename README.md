@@ -134,11 +134,15 @@ lfec -o ebin src/*
 inotifywait --monitor --event close_write --format '%w%f' src | while read file; do
     case $file in
         *.lfe)
-            lfec -o ebin $file
+            lfec -o ebin $file &
             ;;
     esac
 done
 ```
+
+If the command isn't backgrounded, it won't process more than one event. If
+multiple files are written at once, only the first in the group is processed. I
+didn't do any intense debugging, so I can't say why.
 
 
 
@@ -172,21 +176,29 @@ run any time a shell is started.
 
 ```{.erlang name="file:files/dot_erlang"}
 % This file was generated from the README.md.
-io:format("~nStarting beam reloader.~n").
-register(lfe_watcher_reloader, spawn(fun F() ->
-    receive
-        Module_name ->
-            io:format("Reloading: ~s~n", [Module_name]),
-            Module = list_to_atom(Module_name),
-            code:purge(Module),
-            code:load_file(Module)
-    end,
-    F()
-end)).
+case init:get_argument(start_lfe_watcher_reloader) of
+    {ok, _} ->
+        io:format("~nStarting beam reloader.~n"),
+        register(lfe_watcher_reloader, spawn(fun F() ->
+            receive
+                Module_name ->
+                    io:format("Reloading: ~s~n", [Module_name]),
+                    Module = list_to_atom(Module_name),
+                    code:purge(Module),
+                    code:load_file(Module)
+            end,
+            F()
+        end));
+    _ -> ok
+end.
 ```
 
 When I start the shell I can start a background process to watch the files and
 send messages to `lfe_watcher_reloader`.
+
+The `erl` runtime can take arbitrary flags from the command line. I can check
+them with `init:get_argument/1`. By wrapping the beam reloader in an explicit
+flag I can prevent myself from unnecessarily clutter random `erl` commands.
 
 ###### file:files/shell
 
@@ -199,12 +211,15 @@ inotifywait --monitor --event close_write --format '%w%f' ebin | while read file
             module_name=$(basename "$file" .beam)
             erlang_code="{lfe_watcher_reloader, list_to_atom(\"lfe_watcher_shell@\" ++ net_adm:localhost())} ! \"$module_name\""
 
-            erl -noshell -sname lfe_watcher_inotify -eval "$erlang_code" -s init stop
+            erl -noshell -sname lfe_watcher_inotify_$RANDOM -eval "$erlang_code" -s init stop &
             ;;
     esac
 done &
-lfe -sname lfe_watcher_shell -pa ebin
+lfe -start_lfe_watcher_reloader -sname lfe_watcher_shell -pa ebin
 ```
+
+Again, the command needs to be backgrounded because it seems to block the
+processing of other files.
 
 Finally, I just need to put it in the image.
 
