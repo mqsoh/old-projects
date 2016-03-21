@@ -70,7 +70,7 @@ module. The bug has been fixed, but I might as well put it with core Erlang.
 RUN cd /usr/local/lib/erlang/lib \
     && git clone https://github.com/rvirding/lfe.git \
     && cd /usr/local/lib/erlang/lib/lfe \
-    && git checkout v0.10.1 \
+    && git checkout v1.0 \
     && make compile install
 ```
 

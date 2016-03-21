@@ -4,7 +4,7 @@ FROM erlang:18
 RUN cd /usr/local/lib/erlang/lib \
     && git clone https://github.com/rvirding/lfe.git \
     && cd /usr/local/lib/erlang/lib/lfe \
-    && git checkout v0.10.1 \
+    && git checkout v1.0 \
     && make compile install
 RUN apt-get update \
     && apt-get install -y inotify-tools \
