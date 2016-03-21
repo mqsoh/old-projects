@@ -1,42 +1,29 @@
 # LFE Watcher
 
-To watch your LFE files (must be in `src/` and will output to `ebin/`):
+There is only one supported workflow and that is to load an LFE shell that will
+compile `src/*.lfe` files when they are changed and output them to `ebin`. The
+`ebin/*.beam` files generated will automatically be reloaded in the shell.
 
     docker run --interactive --tty --rm --volume $(pwd):/workdir mqsoh/lfe-watcher
 
-To load a shell that will automatically reload compiled modules:
+Previously I'd written it so that you could run a container that would *only*
+compile `src/*.lfe` files and then optionally load up a shell. However, it's
+never the case that I develop without a shell open.
 
-    docker run --interactive --tty --rm --volume $(pwd):/workdir mqsoh/lfe-watcher shell
+You can augment the code path using the [ERL_LIBS][] environment variable, such
+as the following in the `docker run` command.
 
-To manage the container with [Docker Compose][]:
-
-    lfe:
-      image: mqsoh/lfe-watcher
-      volumes:
-        - .:/workdir
-
-And get to the shell with:
-
-    docker-compose run lfe shell
-
-
-
-# Potential Problems
-
-- You can only run one shell. (Caused by the `-sname` flag.)
-- There's no way to augment the code path using command line arguments (`-pa
-  ebin` is given in the image). However, I think you can use the [ERL_LIBS][]
-  environment variable.
+    --env "ERL_LIBS=$(find deps -type d -name ebin)"
 
 
 
 # Rationale
 
-I want to have an LFE container watching `src/` and compiling to `ebin/`. I
-would also like a shell that automatically reloads recompiled modules.
+I want to make developing with LFE as easy as possible.
 
-This is not based on [the official LFE image][] because I tried to install
-`inotify-tools` in the [the official LFE image][], but there was this error:
+This image is not based on [the official LFE image][] because I tried to
+install `inotify-tools` in the [the official LFE image][], but there was this
+error:
 
     root@3991ece0bad8:/workdir# apt-get install inotify-tools
     Reading package lists... Done
@@ -65,8 +52,9 @@ image for the time being.
 FROM erlang:18
 
 <<Install LFE.>>
-<<Install watcher script.>>
-<<Reload code.>>
+<<Install inotify-tools.>>
+<<The Bash side.>>
+<<The Erlang side.>>
 ```
 
 
@@ -76,9 +64,7 @@ FROM erlang:18
 The Erlang image already has git installed. I'm installing LFE to
 `/usr/local/lib/erlang/lib` to avoid any path issues. Initially I tried to
 compile it in `/lfe` but the `lfec` escript couldn't find the `lfe_comp`
-module.
-
-###### Install LFE.
+module. The bug has been fixed, but I might as well put it with core Erlang.
 
 ```{.Dockerfile name="Install LFE."}
 RUN cd /usr/local/lib/erlang/lib \
@@ -90,67 +76,62 @@ RUN cd /usr/local/lib/erlang/lib \
 
 
 
-# Watching and Compiling Source Code
+# Install inotify-tools.  
+The official Erlang image is based on Debian Jessie; `inotify-tools` is in the
+package manager.
 
-I need to
-
-- install inotify-tools,
-- copy the script into the image, and
-- set up the workdir and entrypoint.
-
-###### Install watcher script.
-
-```{.Dockerfile name="Install watcher script."}
+```{.Dockerfile name="Install inotify-tools."}
 RUN apt-get update \
     && apt-get install -y inotify-tools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY files/lfe-watch.sh /usr/local/bin/lfe-watch.sh
-RUN chmod +x /usr/local/bin/lfe-watch.sh
-
-WORKDIR /workdir
-CMD ["lfe-watch.sh"]
 ```
 
-The `WORKDIR /workdir` is a convention I've been using in my Dockerfiles. I
-always map the project directory there, so with `docker run` I use `--volume
-$(pwd):/workdir` and in a Docker Compose file:
+The `apt-get clean` and `rm ...` cleans up any unnecessary `apt` stuff. I saw
+this suggested in an article, but I didn't save the link.
 
-    mycontainer:
-      volumes:
-        - .:/workdir
 
-I need to make that script. How about this?
 
-###### file:files/lfe-watch.sh
+# The Bash side.
 
-```{.bash name="file:files/lfe-watch.sh"}
+I'm going to write a Bash script and this is how I'll add it to the Docker
+image. The `WORKDIR /workdir` is a convention I like to use in my images; I
+always have a `--volume $(pwd):/workdir`.
+
+```{.Dockerfile name="The Bash side."}
+COPY files/lfe-watcher.sh /usr/local/bin/lfe-watcher.sh
+RUN chmod +x /usr/local/bin/lfe-watcher.sh
+WORKDIR /workdir
+CMD ["lfe-watcher.sh"]
+```
+
+I can use `inotifywait` to be notified of changes in `src` and `ebin`.
+
+```{.bash name="file:files/lfe-watcher.sh"}
 #!/bin/bash
 # This file was generated from the README.md.
 
 lfec -o ebin src/*
 
-inotifywait --monitor --event close_write --format '%w%f' src | while read file; do
+inotifywait --monitor --event close_write --format '%w%f' ebin src | while read file; do
     case $file in
-        *.lfe)
-            lfec -o ebin $file &
-            ;;
+        <<Handle changes.>>
     esac
-done
+done &
+
+<<Start the shell.>>
 ```
 
-If the command isn't backgrounded, it won't process more than one event. If
-multiple files are written at once, only the first in the group is processed. I
-didn't do any intense debugging, so I can't say why.
+I compile the files (`lfec ...`) before I start listening to avoid needing any
+bootstrapping of a new project. Also note that the `inotifywait` process is
+backgrounded.
 
+### Sending Messages to the Shell
 
-
-# Reloading Code in the Shell
-
-[Erlang supports shell configuration in a `.erlang` file.][] Here is [an
-example of sending a message between processes on the same node][]. Here's an
-abbreviated example of that.
+When files are changed I need to send a message to the running shell. I'll
+enumerate those processes below, but first I have to be able to send a message
+to them! Here is [an example of sending a message between processes on the same
+node][].  And here's my abbreviated example with a bash one-liner.
 
     erl -sname one
     > register(my_process, spawn(fun () -> receive Any -> io:format("Got: ~w~n", [Any]) end end)).
@@ -160,75 +141,107 @@ And from the bash prompt:
 
     $ erl -noshell -sname two -eval '{my_process, list_to_atom("one@" ++ net_adm:localhost())} ! from_the_shell' -s init stop
 
-In the shell, you'll see:
+In the Erlang shell, you'll see:
 
     Got: from_the_shell
 
 The `-sname <name>` puts Erlang in distributed mode and lets me send a message.
-So, I think all I need to do is pick names for the shell and the process that
-will reload files. Then I can use `inotifywait` to send updates to that
-process.
+So, all I need to do is pick names for the process that will compile and reload
+files. I'll call them `lfe_watcher_lfe_compiler` and
+`lfe_watcher_beam_realoader`. The names are long because I want to avoid
+colliding with anyone or anything.
 
-I can put the Erlang code to do this in a `.erlang` and it'll be automatically
-run any time a shell is started.
+Remember, these segments are inside the `case` statement in `lfe-watcher.sh`.
 
-###### file:files/dot_erlang
+###### Handle changes.
 
-```{.erlang name="file:files/dot_erlang"}
+```{name="Handle changes."}
+*.lfe)
+    erlang_code="{lfe_watcher_lfe_compiler, list_to_atom(\"lfe_watcher@\" ++ net_adm:localhost())} ! \"$file\""
+    erl -noshell -sname "lfe_watcher_sh_lfe_$RANDOM" -eval "$erlang_code" -s init stop &
+    ;;
+
+*.beam)
+    module_name=$(basename "$file" .beam)
+    erlang_code="{lfe_watcher_beam_reloader, list_to_atom(\"lfe_watcher@\" ++ net_adm:localhost())} ! \"$module_name\""
+
+    erl -noshell -sname "lfe_watcher_sh_beam_$RANDOM" -eval "$erlang_code" -s init stop &
+    ;;
+```
+
+The `erl ...` calls need to be backgrounded because, in my experience, it will
+block the processing of other events if you don't.
+
+I called the shell `lfe_watcher` above, so I need to call it that when it
+starts. Also, I'm going to start these processes in the `.erlang`, but I want
+the image to be useful in other ways so I need to use a command line flag to
+turn them on.
+
+###### Start the shell.
+
+```{name="Start the shell."}
+lfe -lfe_watcher_on -sname lfe_watcher -pa ebin
+```
+
+
+
+# The Erlang side.
+
+[Erlang supports shell configuration in a `.erlang` file.][] The commands in
+this file are run in the shell as if a user had typed them (in the same
+context). You can define helper functions, for example.
+
+I need to add this to the Docker image.
+
+```{name="The Erlang side."}
+COPY files/dot_erlang /root/.erlang
+```
+
+The files itself needs to start the compiler and reloader processes if they're
+turned on from the command line.
+
+```{name="file:files/dot_erlang"}
 % This file was generated from the README.md.
-case init:get_argument(start_lfe_watcher_reloader) of
+case init:get_argument(lfe_watcher_on) of
     {ok, _} ->
-        io:format("~nStarting beam reloader.~n"),
-        register(lfe_watcher_reloader, spawn(fun F() ->
-            receive
-                Module_name ->
-                    io:format("Reloading: ~s~n", [Module_name]),
-                    Module = list_to_atom(Module_name),
-                    code:purge(Module),
-                    code:load_file(Module)
-            end,
-            F()
-        end));
+        io:format("~nStarting the LFE compiler and BEAM reloader.~n"),
+        <<Start the LFE compiler.>>
+        ,
+        <<Start the BEAM reloader.>>
+        ;
     _ -> ok
 end.
 ```
 
-When I start the shell I can start a background process to watch the files and
-send messages to `lfe_watcher_reloader`.
+The dangling `,` and `;` mean that I can define those code sections in the same
+way, without terminating the term.
 
-The `erl` runtime can take arbitrary flags from the command line. I can check
-them with `init:get_argument/1`. By wrapping the beam reloader in an explicit
-flag I can prevent myself from unnecessarily clutter random `erl` commands.
+### Start the LFE compiler.
 
-###### file:files/shell
-
-```{.bash name="file:files/shell"}
-#!/bin/bash
-# This file was generated from the README.md.
-inotifywait --monitor --event close_write --format '%w%f' ebin | while read file; do
-    case $file in
-        *.beam)
-            module_name=$(basename "$file" .beam)
-            erlang_code="{lfe_watcher_reloader, list_to_atom(\"lfe_watcher_shell@\" ++ net_adm:localhost())} ! \"$module_name\""
-
-            erl -noshell -sname lfe_watcher_inotify_$RANDOM -eval "$erlang_code" -s init stop &
-            ;;
-    esac
-done &
-lfe -start_lfe_watcher_reloader -sname lfe_watcher_shell -pa ebin
+```{name="Start the LFE compiler."}
+register(lfe_watcher_lfe_compiler, spawn(fun F() ->
+    receive
+        File_name ->
+            io:format("Compiling: ~s~n", [File_name]),
+            lfe_comp:file(File_name, [report, {outdir, "ebin"}])
+    end,
+    F()
+end))
 ```
 
-Again, the command needs to be backgrounded because it seems to block the
-processing of other files.
+### Start the BEAM reloader.
 
-Finally, I just need to put it in the image.
-
-###### Reload code.
-
-```{.Dockerfile name="Reload code."}
-COPY files/dot_erlang /root/.erlang
-COPY files/shell /usr/local/bin/shell
-RUN chmod +x /usr/local/bin/shell
+```{name="Start the BEAM reloader."}
+register(lfe_watcher_beam_reloader, spawn(fun F() ->
+    receive
+        Module_name ->
+            io:format("Reloading: ~s~n", [Module_name]),
+            Module = list_to_atom(Module_name),
+            code:purge(Module),
+            code:load_file(Module)
+    end,
+    F()
+end))
 ```
 
 
@@ -237,5 +250,4 @@ RUN chmod +x /usr/local/bin/shell
 [the official Erlang image]: https://hub.docker.com/_/erlang/
 [Erlang supports shell configuration in a `.erlang` file.]: http://erlang.org/doc/man/erl.html#id179026
 [an example of sending a message between processes on the same node]: http://stackoverflow.com/a/16913797/8710
-[Docker Compose]: https://docs.docker.com/compose/overview/
 [ERL_LIBS]: http://erlang.org/doc/man/code.html

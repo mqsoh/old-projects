@@ -10,12 +10,8 @@ RUN apt-get update \
     && apt-get install -y inotify-tools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY files/lfe-watch.sh /usr/local/bin/lfe-watch.sh
-RUN chmod +x /usr/local/bin/lfe-watch.sh
-
+COPY files/lfe-watcher.sh /usr/local/bin/lfe-watcher.sh
+RUN chmod +x /usr/local/bin/lfe-watcher.sh
 WORKDIR /workdir
-CMD ["lfe-watch.sh"]
+CMD ["lfe-watcher.sh"]
 COPY files/dot_erlang /root/.erlang
-COPY files/shell /usr/local/bin/shell
-RUN chmod +x /usr/local/bin/shell

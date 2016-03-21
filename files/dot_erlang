@@ -1,8 +1,17 @@
 % This file was generated from the README.md.
-case init:get_argument(start_lfe_watcher_reloader) of
+case init:get_argument(lfe_watcher_on) of
     {ok, _} ->
-        io:format("~nStarting beam reloader.~n"),
-        register(lfe_watcher_reloader, spawn(fun F() ->
+        io:format("~nStarting the LFE compiler and BEAM reloader.~n"),
+        register(lfe_watcher_lfe_compiler, spawn(fun F() ->
+            receive
+                File_name ->
+                    io:format("Compiling: ~s~n", [File_name]),
+                    lfe_comp:file(File_name, [report, {outdir, "ebin"}])
+            end,
+            F()
+        end))
+        ,
+        register(lfe_watcher_beam_reloader, spawn(fun F() ->
             receive
                 Module_name ->
                     io:format("Reloading: ~s~n", [Module_name]),
@@ -11,6 +20,7 @@ case init:get_argument(start_lfe_watcher_reloader) of
                     code:load_file(Module)
             end,
             F()
-        end));
+        end))
+        ;
     _ -> ok
 end.
