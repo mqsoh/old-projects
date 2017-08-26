@@ -1,0 +1,48 @@
+This repository will have any plugins I write for Vendetta Online. It includes:
+
+Plod -- for moving between two sectors (automatic rerouting) and optionally trading.
+
+Humaniform -- prints human-like activities to sector chat with /me, e.g. /me scratches his head.
+
+
+====
+Plod
+====
+
+Plod can be used to plot courses between two sectors. It will also buy and
+unload cargo between two stations, if you provide a third argument. For
+trading it will do everything but the flying.
+
+The trade item is case sensitive.
+
+Usage.
+------
+/plod [start sector or 'current'] [end sector or 'current'] [optional trade item]
+
+Examples:
+---------
+/plod 'sol e15' 'geira i5' 'XiRite Alloy'
+/plod current 'geira o4' 'Basic Targeting Systems'
+/plod a12 j6
+
+
+
+===========
+Humaniform.
+===========
+
+Humaniform makes your charcter act like a human. When active, it will send
+/me messages to sector chat indicating that you're engaged in human-like
+activities.
+
+Usage.
+------
+/humaniform [gender, 'on' or 'off']
+
+Examples.
+---------
+/humaniform on
+/humaniform off
+/humaniform male
+/humaniform female
+/humaniform neuter
