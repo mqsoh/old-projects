@@ -1,0 +1,109 @@
+@ \title{Literate Makefile for Literate Programming}
+\author{Mason Staugler}
+
+An attempt at a literate Makefile for [[noweb]] development.
+
+You must install [[noweb]] and [[inotify-tools]] (for auto-compiling).
+
+The [[Makefile]]  can be generated with [[notangle -t4 Makefile.nw >
+Makefile]].
+
+<<*>>=
+# This file was generated from Makefile.nw using something like the following
+# command.
+#
+#     notangle -t4 Makefile.nw > Makefile
+SHELL := /bin/bash
+help:
+	<<help>>
+<<rules>>
+@
+
+
+@ These two macros will be used to tangle and weave files. They are meant to be
+embedded in make rules (thus the trailing backslash) and also assume that a
+\$file environment variable is set to the path of the file to compile.
+
+<<tangle file>>=
+echo "$$(date +%H:%M:%S) tangle $$file $${file%.nw}"; \
+notangle -t4 $$file > $${file%.nw}; \
+@
+<<weave file>>=
+mkdir -p docs/$$(dirname $$file); \
+echo "$$(date +%H:%M:%S) weave $$file docs/$$file.html"; \
+cat doc_top.html | sed -e "s|{file}|$$file|g" > docs/$$file.html; \
+noweave -html -n -filter l2h -index $$file >> docs/$$file.html; \
+cat doc_bottom.html >> docs/$$file.html; \
+@
+
+
+@ A rule to tangle all [[.nw]] files in the project.
+
+<<help>>=
+@echo tangle: Compiles all noweb files to source code.
+<<rules>>=
+tangle:
+	@for file in $$(find . -name '*.nw'); do \
+		<<tangle file>>
+	done
+@
+
+
+@ A rule to compile all noweb files to documentation.
+
+<<help>>=
+@echo weave: Compiles all .nw files into docs/.
+<<rules>>=
+weave:
+	@for file in $$(find . -name '*.nw'); do \
+		<<weave file>>
+	done
+@
+
+
+@ We'll want to provide multiple tasks that use an [[inotifywait]] on [[*.nw]]
+files. If I define the requisite bash code as a sandwich, we can avoid a little
+code duplication. Cool!
+
+The [[inotifywait]] utility is provided in the [[inotify-tools]] package.
+
+<<inotifywait top>>=
+@inotifywait -mr --format '%w%f' -e close_write ./ | while read file; do \
+	case $$file in \
+		*.nw) \
+<<inotifywait bottom>>=
+		;; \
+	esac \
+done
+@
+
+
+@ Now we can provide three make rules to [[tangle]], [[weave]], and one that
+does both.
+
+<<help>>=
+@echo tangle-watch: Watches for changes to .nw files and tangles them.
+<<rules>>=
+tangle-watch: tangle
+	<<inotifywait top>>
+	<<tangle file>>
+	<<inotifywait bottom>>
+@
+
+<<help>>=
+@echo weave-watch: Watches for changes to .nw files and weaves them.
+<<rules>>=
+watch-weave: weave
+	<<inotifywait top>>
+	<<weave file>>
+	<<inotifywait bottom>>
+@
+
+<<help>>=
+@echo watch: Watches for changes to .nw files and both tangles and weaves them.
+<<rules>>=
+watch: tangle weave
+	<<inotifywait top>>
+	<<tangle file>>
+	<<weave file>>
+	<<inotifywait bottom>>

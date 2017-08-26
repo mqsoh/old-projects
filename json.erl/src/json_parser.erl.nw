@@ -1,0 +1,575 @@
+@ \title{json_parser.erl}
+\author{Mason Staugler}
+\maketitle
+
+\section{Module}
+
+This module will provide a single function to convert a JSON string into an
+Erlang term.
+
+<<*>>=
+%% This file was generated from json_parser.erl.nw.
+-module(json_parser).
+-export([
+    <<exports>>
+]).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
+<<internal functions>>
+
+-ifdef(TEST).
+<<tests>>
+-endif.
+@
+
+
+@ \section{Number}
+
+\subsection{Tests}
+
+This is being converted to a literate program, so I'm not sure exactly how I
+approached this originally. I know that I started with number conversions
+because they are the most difficult.
+
+All the internal functions will take an input string and a list of options.
+They will yield an Erlang term and the rest of the input (or an empty string).
+
+A JSON document is an object or list. Since a number is a value in either of
+those data types, the input string will always contain a trailing character.
+
+<<tests>>=
+unterminated_number_test() ->
+    ok = try number("1234", []) of
+        _ -> will_not_happen
+    catch
+        error:unterminated_number -> ok
+    end.
+@
+
+@ These test strings have various trailing characters just to illustrate that
+it doesn't matter what sort of character it is. It only needs to be something
+invalid for a number.
+
+<<tests>>=
+various_numbers_test() ->
+    {0.1234, ","} = number("0.1234,", []),
+    {1.234, "}"} = number("0.1234e1}", []),
+    {1.234, "\n"} = number("0.1234E1\n", []),
+    {1.234, "]"} = number("0.1234e+1]", []),
+    {0.01234, "]"} = number("0.1234e-1]", []),
+    {0, "]"} = number("0]", []),
+    {-1, "]"} = number("-1]", []),
+    {1, "]"} = number("1]", []),
+    {1234, "]"} = number("1234]", []),
+    {12340, "]"} = number("1234e1]", []),
+    {12340, "]"} = number("1234E1]", []),
+    {12340, "]"} = number("1234e+1]", []),
+    {123.4, "]"} = number("1234e-1]", []),
+    {1234, "]"} = number("12340e-1]", []).
+@
+
+@ \subsection{Definitions}
+
+The [[number]] function doesn't use any options. Delegating to [[number1]]
+lets us ignore them (the empty list given to [[number1]] initializes the
+accumulator.
+
+<<internal functions>>=
+number(Input, _Options) ->
+    number1(Input, []).
+@
+
+@ Throw an error if we've run out of input without finding the end of the
+number.
+
+<<internal functions>>=
+number1([], _Acc) ->
+    error(unterminated_number);
+
+@ This bit consumes number-like characters and dumps them in to the
+accumulator. This is pretty naive since it allows multiple [[e]]s, [[+]]s, etc.
+There should probably be some validation, but for now I'm just trying to parse
+correct input correctly. Also, maybe validation is a separate concern. I saw a
+talk that Joe Armstrong gave where he brought up services that use UBF
+(https://www.sics.se/~joe/ubf/site/home.html) to validate communication between
+two parties.
+
+<<internal functions>>=
+number1([Char | Rest], Acc) when (Char >= 16#30 andalso Char =< 16#39);% 0 - 9
+                                  Char == 16#2b;% +
+                                  Char == 16#2d;% -
+                                  Char == 16#2e;% .
+                                  Char == 16#45;% E
+                                  Char == 16#65 ->% e
+    number1(Rest, [Char | Acc]);
+@
+
+@ Convert the string to a number. Unfortunately, I don't quite remember how I
+got to this. I think the main issue that it solves is that JSON supports
+exponents for integers, but Erlang must have it as a float (thus the string
+replace on "e" to ".0e").
+
+<<internal functions>>=
+number1(Rest, Acc) ->
+    Number_string = lists:reverse(Acc),
+    % Try making it a float.
+    Number = case string:to_float(Number_string) of
+        {error, no_float} ->
+            % Failed float; try an integer.
+            try list_to_integer(Number_string) of
+                Any -> Any
+            catch
+                error:badarg ->
+                    % Oops. Failed integer, too. It might be a converstion
+                    % problem between JSON and Erlang's way of dealing with
+                    % exponents. This will fix it, but...
+                    {Float, _Rest} = string:to_float(re:replace(string:to_lower(Number_string), "e", ".0e", [{return, list}])),
+                    Integer = trunc(Float),
+                    % ...now we don't know if it's an integer or float.
+                    case Integer == Float of
+                        true -> Integer;
+                        false -> Float
+                    end
+            end;
+        {Float, _Rest} -> Float
+    end,
+    {Number, Rest}.
+@
+
+
+@ \section{String}
+
+The next section I implemented was strings. It's pretty easy with the escaping,
+but the UTF-16 surrogate pairs were an interesting thing I learned about.
+
+\subsection{Tests}
+
+Strings will always be terminated by an unescaped [["]]. If they aren't, all
+the input will be consumed and we'll create an error.
+
+<<tests>>=
+unterminated_string_test() ->
+    ok = try string("foobar", []) of
+        _ -> will_not_happen
+    catch
+        error:unterminated_string -> ok
+    end.
+@
+
+@ Test some simple strings and escaped characters. Unicode code points will be
+tested below. The other supported escaped characters are:
+
+\begin{itemize}
+    \item quotation mark: "
+    \item reverse solidus: \textbackslash (backslash; the [[l2h]] filter with
+        noweb doesn't print it, but latex2pdf does -- irritating)
+    \item solidus: /
+    \item backspace: b
+    \item formfeed: f
+    \item newline: n
+    \item carriage return: r
+    \item horizontal tab: t
+\end{itemize}
+
+<<tests>>=
+simple_strings_test() ->
+    {"foobar", []} = string("foobar\"", []),
+    {"\\", []} = string("\\\\\"", []),
+    {"\".\\./.\b.\f.\n.\r.\t.", []} = string("\\\".\\.\\/.\\b.\\f.\\n.\\r.\\t.\"", []).
+@
+
+
+@ We should accept literal UTF-8 characters in strings. http://en.wikipedia.org/wiki/JSON#Data_portability_issues
+
+<<tests>>=
+literal_unicode_string_test() ->
+    {"😂", []} = string("😂\"", []).
+@
+
+
+@ And anything in the basic multilingual plane. The two characters ensure that
+we don't misinterpret them as a UTF-16 surrogate pair.
+
+<<tests>>=
+multilingual_plane_string_test() ->
+    {"￦", []} = string("\\uFFE6\"", []),
+    {"￦￦", []} = string("\\uFFE6\\uFFE6\"", []).
+@
+
+
+@ I'll talk more about about surrogate pairs when I implement it. The treble
+clef is within the range of characters that can (or must?) be represented as
+UTF-16 surrogate pairs. I forget exactly why I chose it. The won sign just
+ensures again that we don't get confused between single characters and
+surrogate pairs.
+
+<<tests>>=
+utf_16_surrogate_pairs_test() ->
+    {"𝄞", []} = string("\\ud834\\udd1e\"", []),
+    {"￦𝄞￦", []} = string("\\uFFE6\\ud834\\udd1e\\uffe6\"", []).
+@
+
+
+@ \subsection{Definitions}
+
+Like the [[number]] function, the [[string]] function also doesn't use any
+options. We'll delegate to [[string1]].
+
+<<internal functions>>=
+string(Input, _Options) ->
+    string1(Input, []).
+@
+
+
+@ We've failed to find the termination of the string.
+
+<<internal functions>>=
+string1([], _Acc) ->
+    error(unterminated_string);
+@
+
+
+@ The escaped characters are pretty simple -- just replace them with the
+literals.
+
+<<internal functions>>=
+string1([$\\, $" | Rest], Acc) -> string1(Rest, [$" | Acc]);
+string1([$\\, $\\ | Rest], Acc) -> string1(Rest, [$\\ | Acc]);
+string1([$\\, $/ | Rest], Acc) -> string1(Rest, [$/ | Acc]);
+string1([$\\, $b | Rest], Acc) -> string1(Rest, [$\b | Acc]);
+string1([$\\, $f | Rest], Acc) -> string1(Rest, [$\f | Acc]);
+string1([$\\, $n | Rest], Acc) -> string1(Rest, [$\n | Acc]);
+string1([$\\, $r | Rest], Acc) -> string1(Rest, [$\r | Acc]);
+string1([$\\, $t | Rest], Acc) -> string1(Rest, [$\t | Acc]);
+@
+
+@ The algorithm to convert surrogate pairs is pretty simple (though it was new
+to me and very enlightening when I figured it out). It's the reverse of the
+steps enumerated in the Wikipedia article
+(http://en.wikipedia.org/wiki/UTF-16#Code_points_U.2B010000_to_U.2B10FFFF). We
+need to:
+
+\begin{enumerate}
+    \item extract the bits from the first item in the pair ([[lead surrogate]])
+        and subtract [[0xD800]],
+    \item extract the bits from the second item in the pair ([[tail
+        surrogate]]) and subtract [[0xDC00]], and
+    \item concatenate the bits into a 20-bit number and add [[0x010000]].
+\end{enumerate}
+
+<<internal functions>>=
+string1([$\\, $u, U1, U2, U3, U4, $\\, $u, L1, L2, L3, L4 | Rest], Acc) ->
+    Upper_offset = list_to_integer([U1, U2, U3, U4], 16),
+
+    case (Upper_offset < 16#d800) or (Upper_offset > 16#dbff) of
+        true ->
+            % This is actually two sequential characters, not a surrogate pair.
+            % Push the second character back on to the input and reprocess.
+            string1([$\\, $u, L1, L2, L3, L4 | Rest], [Upper_offset | Acc]);
+        false ->
+            Lower_offset = list_to_integer([L1, L2, L3, L4], 16),
+            Upper = Upper_offset - 16#d800,
+            Lower = Lower_offset - 16#dc00,
+            @<<Codepoint_offset:20/integer>> = @<<Upper:10/integer, Lower:10/integer>>,
+            Codepoint = Codepoint_offset + 16#010000,
+            string1(Rest, [Codepoint | Acc])
+    end;
+@
+
+
+@ This is a single escaped Unicode code point.
+
+<<internal functions>>=
+string1([$\\, $u, C1, C2, C3, C4 | Rest], Acc) ->
+    string1(Rest, [list_to_integer([C1, C2, C3, C4], 16) | Acc]);
+@
+
+
+@ We've come across a literal quote -- the end of the string! I think maybe if
+I was writing this as a literate program initially, I would have put this
+closer to the [[unterminated_string]] error.
+
+
+<<internal functions>>=
+string1([$\" | Rest], Acc) ->
+    {lists:reverse(Acc), Rest};
+@
+
+
+@ The fallback condition is a normal character in the string and we'll just add
+it to the accumulator.
+
+<<internal functions>>=
+string1([Char | Rest], Acc) ->
+    string1(Rest, [Char | Acc]).
+@
+
+
+@ \section{Value}
+
+A value is one of
+
+\begin{itemize}
+    \item [[true]]
+    \item [[false]]
+    \item [[null]]
+    \item number
+    \item string
+    \item object
+    \item array
+\end{itemize}
+
+We'll implement the object and array later. The [[value]] function must come
+first because they are both collections of the other types.
+
+In my initial implementation of this, I discovered that malformed input
+generated errors that looked like a bad number because the fallback was for
+numbers. This time we'll detect numbers properly and throw an error as the
+fallback.
+
+<<tests>>=
+<<value tests>>
+@
+
+<<internal functions>>=
+<<value function>>
+value(_Input, _Options) ->
+    error(unknown_value).
+@
+
+@ The [[true]], [[false]], and [[null]] literals are easiest. The input string
+will end with either an array or object terminator but isn't important until we
+implement those types.
+
+<<value tests>>=
+simple_value_test() ->
+    {true, "]"} = value("true]", []),
+    {false, "]"} = value("false]", []),
+    {null, "]"} = value("null]", []).
+@
+
+<<value function>>=
+value([$t, $r, $u, $e | Rest], _Options) ->
+    {true, Rest};
+value([$f, $a, $l, $s, $e | Rest], _Options) ->
+    {false, Rest};
+value([$n, $u, $l, $l | Rest], _Options) ->
+    {null, Rest};
+@
+
+@ When processing the input, a quote marks the start of a string. However, a
+string still must be contained in an object or array, so we need the end quote
+and another terminator.
+
+<<value tests>>=
+string_value_test() ->
+    {"foobar", "]"} = value("\"foobar\"]", []).
+@
+
+<<value function>>=
+value([$" | Rest], Options) ->
+    string(Rest, Options);
+@
+
+
+@ A number is a value and starts with a [[-]] or a digit. Unlike the other
+types, we need to pop the character we used to detect it back on to the input.
+
+<<value tests>>=
+number_value_test() ->
+    {0.1234, "]"} = value("0.1234]", []).
+@
+
+<<value function>>=
+value([$- | Rest], Options) ->
+    number([$- | Rest], Options);
+value([Char | Rest], Options) when Char >= 16#30 andalso Char =< 16#39 -> % A digit 0 - 9.
+    number([Char | Rest], Options);
+@
+
+
+@ We should ignore white space. I suspect that this is naive, but...never say
+die!
+
+<<value tests>>=
+ignore_white_space_value_test() ->
+    {true, "]"} = value("   \n \t  \r\n  true]", []).
+@
+
+<<value function>>=
+value([Char | Rest], Options) when
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t ->
+    value(Rest, Options);
+@
+
+
+@ Export the [[value]] function.
+<<exports>>=
+value/2
+@
+
+
+@ \section{Array}
+
+Arrays are values that are a list of any other value. They are contained in
+[[[]] and [[]]] and elements are separated by [[,]] which can be surrounded by
+arbitrary white space.
+
+The [[[]] will tell the value function to consume an array, so that character
+is consumed before processing starts. That's why the input is skipping the
+[[[]].
+
+<<tests>>=
+<<array tests>>
+<<array tests>>=
+array_test() ->
+    {[true], ""} = array("true]", []),
+    {[true, false, null], ""} = array("true, false, null]", []),
+    {[true, false, null], ""} = array("\r\n\ttrue  ,\n    false\n,\n    \tnull\n  ]", []),
+    {[true, false, "Foo bar baz, buzz."], ""} = array("true, false, \"Foo bar baz, buzz.\"]", []).
+@
+
+@ An array starts with a [[[]] and we'll need to augment [[value]] to delegate
+to [[array]].
+
+<<value function>>=
+value([$[ | Rest], Options) ->
+    array(Rest, Options);
+@
+
+@ When we get a [[]]], the array is complete. This is the terminator.
+
+<<internal functions>>=
+<<array function>>
+<<array function>>=
+array(Input, Options) ->
+    array(Input, [], Options).
+
+array([$] | Rest], Acc, _Options) ->
+    {lists:reverse(Acc), Rest};
+@
+
+@ For every element in the array, [[value]] will be called. This means that we
+can effectively ignore [[,]]. In the following array, the number is consumed,
+the [[array]] function ignores the [[,]] and white space. It then identifies
+another value, which gets consumed, etc.
+
+\begin{verbatim}
+[12345, "foobar"]
+\end{verbatim}
+
+<<array function>>=
+array([Char | Rest], Acc, Options) when
+    Char == $,;
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t ->
+    array(Rest, Acc, Options);
+
+array(Rest, Acc, Options) ->
+    {Value, Rest1} = value(Rest, Options),
+    array(Rest1, [Value | Acc], Options).
+@
+
+
+@ \section{Object}
+
+<<tests>>=
+<<object tests>>
+<<object tests>>=
+object_test() ->
+    {#{"foo" := "bar"}, ""} = object("\"foo\": \"bar\"}", []),
+    {#{"foo" := "bar", "baz" := ["b", "u", "zz"]}, ""} = object(
+        "  \"foo\" : \"bar\",\n   \"baz\": \n[\n\t  \"b\" , \"u\", \"zz\"\n]}", []),
+    {#{"total_rows" := 0, "offset" := 0, "rows" := []}, "\n"} = object(
+        "\"total_rows\":0,\"offset\":0,\"rows\":[\r\n\r\n]}\n", []).
+@
+
+@ Objects start and end with a single character and each key-value pair is
+separated by a comma. This is the same as arrays and it's possible that there
+is a nice, elegant abstraction that I'm missing.
+
+First we'll augment [[value]] to handle objects.
+
+<<value function>>=
+value([${ | Rest], Options) ->
+    object(Rest, Options);
+@
+
+<<internal functions>>=
+<<object function>>
+<<object function>>=
+object(Input, Options) ->
+    object(Input, [], Options).
+
+object([$} | Rest], Object_list, _Options) ->
+    {maps:from_list(Object_list), Rest};
+object([Char | Rest], Object_list, Options) when
+    Char == $,;
+    Char == $ ;
+    Char == $\r;
+    Char == $\n;
+    Char == $\t ->
+    object(Rest, Object_list, Options);
+@
+
+@ When we come across a [["]], this is the signal for a new key-value pair. The
+[[case]] statement in the key extraction is the only place we use options. If
+someone passes the atom [[atom_keys]], the objects keys are converted to atoms.
+(This may not be useful. When Erlang's syntax bothered me, I thought atom keys
+were necessary, but I'm getting used to a lot of things about the language.)
+
+The regex replaces a different implementation I'd done, but it's verbose and I
+have no proof that the regex is any worse.
+
+The old [[Rest2]] looked like this (it didn't even ignore all the requisite
+white space):
+
+\begin{verbatim}
+Rest2 = lists:foldl(
+    fun (Unwanted, String) ->
+        string:strip(String, left, Unwanted)
+    end,
+    Rest1,
+    [$ , $:, $ ])
+\end{verbatim}
+
+<<object function>>=
+object([$" | Rest], Object_list, Options) ->
+    {Key, Rest1} = begin
+        {String_key, Rest1} = string(Rest, Options),
+        case lists:member(atom_keys, Options) of
+            true -> {list_to_atom(String_key), Rest1};
+            _ -> {String_key, Rest1}
+        end
+    end,
+    Rest2 = re:replace(Rest1, "^[:\\s]+", "", [global, {return, list}]),
+    {Value, Rest3} = value(Rest2, Options),
+    object(Rest3, [{Key, Value} | Object_list], Options).
+@
+
+
+@ \section{Finally}
+
+I just want to make a test to pull it all together.
+
+<<tests>>=
+final_test() ->
+    {#{"number" := 1230000,
+       "string" := "foobar",
+        "array" := [true, false, null],
+        "nested_object" := #{"a" := "b"}}, ""} =
+    value("{\"number\": 123e4,
+            \"string\": \"foobar\",
+            \"array\": [true,
+                        false,
+                        null],
+            \"nested_object\": {
+                \"a\": \"b\"}}", []).

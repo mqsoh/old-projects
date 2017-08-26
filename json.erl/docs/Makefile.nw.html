@@ -1,0 +1,146 @@
+<!doctype html>
+<title>./Makefile.nw</title>
+<style>
+    body {
+        background-color: #eeeeec;
+        color: #2e3436;
+    }
+    a {
+        color: #204a87;
+    }
+    pre {
+        padding: 10px;
+        background-color: #2e3436;
+        color: #eeeeec;
+    }
+    pre a {
+        color: #729fcf;
+    }
+</style>
+<!-- this file was generated automatically by noweave; better not edit it-->
+<h1>Literate Makefile for Literate Programming</h1>
+<address><a name="NWD1RF3q1-1">Mason Staugler</a></address>
+<p>
+An attempt at a literate Makefile for <code>noweb</code> development.
+<p>
+You must install <code>noweb</code> and <code>inotify-tools</code> (for auto-compiling).
+<p>
+The <code>Makefile</code>  can be generated with <code>notangle -t4 Makefile.nw &gt;
+Makefile</code>.
+<p>
+<pre><a name="NW1RF3q1-1p0Y9w-1" href="#NWD1RF3q1-1"><dfn>&lt;*&gt;=</dfn></a>
+# This file was generated from Makefile.nw using something like the following
+# command.
+#
+#     notangle -t4 Makefile.nw &gt; Makefile
+SHELL := /bin/bash
+help:
+        <a name="NW1RF3q1-1p0Y9w-1-u1" href="#NWD1RF3q1-3"><i>&lt;help&gt;</i></a>
+<a name="NW1RF3q1-1p0Y9w-1-u2" href="#NW1RF3q1-1igLiJ-1"><i>&lt;rules&gt;</i></a>
+</pre><p>
+
+
+<a name="NWD1RF3q1-2">These two macros will be used to tangle and weave files. They are meant to be</a>
+embedded in make rules (thus the trailing backslash) and also assume that a
+$file environment variable is set to the path of the file to compile.
+<p>
+<pre><a name="NW1RF3q1-3kCBGo-1" href="#NWD1RF3q1-2"><dfn>&lt;tangle file&gt;=</dfn></a> <b>(<a href="#NW1RF3q1-1igLiJ-1">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-3">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-5">U-&gt;</a>)</b>
+echo &quot;$$(date +%H:%M:%S) tangle $$file $${file%.nw}&quot;; \
+notangle -t4 $$file &gt; $${file%.nw}; \
+</pre><p>
+<pre><a name="NW1RF3q1-2don7M-1" href="#NW1RF3q1-2don7M-1"><dfn>&lt;weave file&gt;=</dfn></a> <b>(<a href="#NW1RF3q1-1igLiJ-2">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-4">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-5">U-&gt;</a>)</b>
+mkdir -p docs/$$(dirname $$file); \
+echo &quot;$$(date +%H:%M:%S) weave $$file docs/$$file.html&quot;; \
+cat doc_top.html | sed -e &quot;s|{file}|$$file|g&quot; &gt; docs/$$file.html; \
+noweave -html -n -filter l2h -index $$file &gt;&gt; docs/$$file.html; \
+cat doc_bottom.html &gt;&gt; docs/$$file.html; \
+</pre><p>
+
+
+<a name="NWD1RF3q1-3">A rule to tangle all </a><code>.nw</code> files in the project.
+<p>
+<pre><a name="NW1RF3q1-gbI5m-1" href="#NWD1RF3q1-3"><dfn>&lt;help&gt;=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[D<a href="#NWD1RF3q1-4">-&gt;</a>]</b>
+@echo tangle: Compiles all noweb files to source code.
+</pre><pre><a name="NW1RF3q1-1igLiJ-1" href="#NW1RF3q1-1igLiJ-1"><dfn>&lt;rules&gt;=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[D<a href="#NW1RF3q1-1igLiJ-2">-&gt;</a>]</b>
+tangle:
+        @for file in $$(find . -name '*.nw'); do \
+                <a name="NW1RF3q1-1igLiJ-1-u1" href="#NWD1RF3q1-2"><i>&lt;tangle file&gt;</i></a>
+        done
+</pre><p>
+
+
+<a name="NWD1RF3q1-4">A rule to compile all noweb files to documentation.</a>
+<p>
+<pre><a name="NW1RF3q1-gbI5m-2" href="#NWD1RF3q1-3"><dfn>&lt;help&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NWD1RF3q1-3">&lt;-</a>D<a href="#NWD1RF3q1-6">-&gt;</a>]</b>
+@echo weave: Compiles all .nw files into docs/.
+</pre><pre><a name="NW1RF3q1-1igLiJ-2" href="#NW1RF3q1-1igLiJ-1"><dfn>&lt;rules&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NW1RF3q1-1igLiJ-1">&lt;-</a>D<a href="#NW1RF3q1-1igLiJ-3">-&gt;</a>]</b>
+weave:
+        @for file in $$(find . -name '*.nw'); do \
+                <a name="NW1RF3q1-1igLiJ-2-u1" href="#NW1RF3q1-2don7M-1"><i>&lt;weave file&gt;</i></a>
+        done
+</pre><p>
+
+
+<a name="NWD1RF3q1-5">We'll want to provide multiple tasks that use an </a><code>inotifywait</code> on <code>*.nw</code>
+files. If I define the requisite bash code as a sandwich, we can avoid a little
+code duplication. Cool!
+<p>
+The <code>inotifywait</code> utility is provided in the <code>inotify-tools</code> package.
+<p>
+<pre><a name="NW1RF3q1-2bmOlU-1" href="#NWD1RF3q1-5"><dfn>&lt;inotifywait top&gt;=</dfn></a> <b>(<a href="#NW1RF3q1-1igLiJ-3">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-4">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-5">U-&gt;</a>)</b>
+@inotifywait -mr --format '%w%f' -e close_write ./ | while read file; do \
+        case $$file in \
+                *.nw) \
+</pre><pre><a name="NW1RF3q1-4YmJFx-1" href="#NW1RF3q1-4YmJFx-1"><dfn>&lt;inotifywait bottom&gt;=</dfn></a> <b>(<a href="#NW1RF3q1-1igLiJ-3">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-4">U-&gt;</a> <a href="#NW1RF3q1-1igLiJ-5">U-&gt;</a>)</b>
+                ;; \
+        esac \
+done
+</pre><p>
+
+
+<a name="NWD1RF3q1-6">Now we can provide three make rules to </a><code>tangle</code>, <code>weave</code>, and one that
+does both.
+<p>
+<pre><a name="NW1RF3q1-gbI5m-3" href="#NWD1RF3q1-3"><dfn>&lt;help&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NWD1RF3q1-4">&lt;-</a>D<a href="#NW1RF3q1-gbI5m-4">-&gt;</a>]</b>
+@echo tangle-watch: Watches for changes to .nw files and tangles them.
+</pre><pre><a name="NW1RF3q1-1igLiJ-3" href="#NW1RF3q1-1igLiJ-1"><dfn>&lt;rules&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NW1RF3q1-1igLiJ-2">&lt;-</a>D<a href="#NW1RF3q1-1igLiJ-4">-&gt;</a>]</b>
+tangle-watch: tangle
+        <a name="NW1RF3q1-1igLiJ-3-u1" href="#NWD1RF3q1-5"><i>&lt;inotifywait top&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-3-u2" href="#NWD1RF3q1-2"><i>&lt;tangle file&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-3-u3" href="#NW1RF3q1-4YmJFx-1"><i>&lt;inotifywait bottom&gt;</i></a>
+</pre><p>
+
+<pre><a name="NW1RF3q1-gbI5m-4" href="#NWD1RF3q1-3"><dfn>&lt;help&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NWD1RF3q1-6">&lt;-</a>D<a href="#NW1RF3q1-gbI5m-5">-&gt;</a>]</b>
+@echo weave-watch: Watches for changes to .nw files and weaves them.
+</pre><pre><a name="NW1RF3q1-1igLiJ-4" href="#NW1RF3q1-1igLiJ-1"><dfn>&lt;rules&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NW1RF3q1-1igLiJ-3">&lt;-</a>D<a href="#NW1RF3q1-1igLiJ-5">-&gt;</a>]</b>
+watch-weave: weave
+        <a name="NW1RF3q1-1igLiJ-4-u1" href="#NWD1RF3q1-5"><i>&lt;inotifywait top&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-4-u2" href="#NW1RF3q1-2don7M-1"><i>&lt;weave file&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-4-u3" href="#NW1RF3q1-4YmJFx-1"><i>&lt;inotifywait bottom&gt;</i></a>
+</pre><p>
+
+<pre><a name="NW1RF3q1-gbI5m-5" href="#NWD1RF3q1-3"><dfn>&lt;help&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NW1RF3q1-gbI5m-4">&lt;-</a>D]</b>
+@echo watch: Watches for changes to .nw files and both tangles and weaves them.
+</pre><pre><a name="NW1RF3q1-1igLiJ-5" href="#NW1RF3q1-1igLiJ-1"><dfn>&lt;rules&gt;+=</dfn></a> <b>(<a href="#NWD1RF3q1-1">&lt;-U</a>)</b> <b>[<a href="#NW1RF3q1-1igLiJ-4">&lt;-</a>D]</b>
+watch: tangle weave
+        <a name="NW1RF3q1-1igLiJ-5-u1" href="#NWD1RF3q1-5"><i>&lt;inotifywait top&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-5-u2" href="#NWD1RF3q1-2"><i>&lt;tangle file&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-5-u3" href="#NW1RF3q1-2don7M-1"><i>&lt;weave file&gt;</i></a>
+        <a name="NW1RF3q1-1igLiJ-5-u4" href="#NW1RF3q1-4YmJFx-1"><i>&lt;inotifywait bottom&gt;</i></a>
+</pre>
+
+<ul>
+<li><a href="#NWD1RF3q1-1"><i>&lt;*&gt;</i></a>: <a href="#NWD1RF3q1-1">D1</a>
+<li><a href="#NWD1RF3q1-3"><i>&lt;help&gt;</i></a>: <a href="#NWD1RF3q1-1">U1</a>, <a href="#NWD1RF3q1-3">D2</a>, <a href="#NWD1RF3q1-4">D3</a>, <a href="#NWD1RF3q1-6">D4</a>, <a href="#NW1RF3q1-gbI5m-4">D5</a>, <a href="#NW1RF3q1-gbI5m-5">D6</a>
+<li><a href="#NW1RF3q1-4YmJFx-1"><i>&lt;inotifywait bottom&gt;</i></a>: <a href="#NW1RF3q1-4YmJFx-1">D1</a>, <a href="#NW1RF3q1-1igLiJ-3">U2</a>, <a href="#NW1RF3q1-1igLiJ-4">U3</a>, <a href="#NW1RF3q1-1igLiJ-5">U4</a>
+<li><a href="#NWD1RF3q1-5"><i>&lt;inotifywait top&gt;</i></a>: <a href="#NWD1RF3q1-5">D1</a>, <a href="#NW1RF3q1-1igLiJ-3">U2</a>, <a href="#NW1RF3q1-1igLiJ-4">U3</a>, <a href="#NW1RF3q1-1igLiJ-5">U4</a>
+<li><a href="#NW1RF3q1-1igLiJ-1"><i>&lt;rules&gt;</i></a>: <a href="#NWD1RF3q1-1">U1</a>, <a href="#NW1RF3q1-1igLiJ-1">D2</a>, <a href="#NW1RF3q1-1igLiJ-2">D3</a>, <a href="#NW1RF3q1-1igLiJ-3">D4</a>, <a href="#NW1RF3q1-1igLiJ-4">D5</a>, <a href="#NW1RF3q1-1igLiJ-5">D6</a>
+<li><a href="#NWD1RF3q1-2"><i>&lt;tangle file&gt;</i></a>: <a href="#NWD1RF3q1-2">D1</a>, <a href="#NW1RF3q1-1igLiJ-1">U2</a>, <a href="#NW1RF3q1-1igLiJ-3">U3</a>, <a href="#NW1RF3q1-1igLiJ-5">U4</a>
+<li><a href="#NW1RF3q1-2don7M-1"><i>&lt;weave file&gt;</i></a>: <a href="#NW1RF3q1-2don7M-1">D1</a>, <a href="#NW1RF3q1-1igLiJ-2">U2</a>, <a href="#NW1RF3q1-1igLiJ-4">U3</a>, <a href="#NW1RF3q1-1igLiJ-5">U4</a>
+</ul>
+<ul>
+</ul>
+
+<p>
+    Copyright 2014 Mason Staugler
+</p>

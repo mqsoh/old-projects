@@ -1,0 +1,255 @@
+@ \title{json_emitter.erl}
+\author{Mason Staugler}
+
+This module will convert Erlang terms into JSON strings. This was significantly
+easier than [[json_parser.erl]], so I don't remember much about how I
+originally approached it.
+
+<<*>>=
+-module(json_emitter).
+-export([
+    <<exports>>
+]).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
+<<term function>>
+<<object function>>
+<<array function>>
+<<string function>>
+
+-ifdef(TEST).
+<<term tests>>
+<<object tests>>
+<<array tests>>
+<<string tests>>
+-endif.
+@
+
+@ \section{Low Hanging Fruit}
+
+A JSON document must be an object or array, so we only need to provide a single
+function that takes a single argument to generate all documents.
+
+<<exports>>=
+term/1
+@
+
+@ [[nil]] is idiomatic Erlang, so we'll render it as [["null"]].
+
+<<term tests>>=
+keyword_term_test() ->
+    "true" = term(true),
+    "false" = term(false),
+    "null" = term(null),
+    "null" = term(nil).
+@
+
+<<term function>>=
+term(true) -> "true";
+term(false) -> "false";
+term(null) -> "null";
+term(nil) -> "null";
+@
+
+@ \section{Numbers}
+
+The float stuff threw me for a loop. If I was doing literate programming at the
+time I would know what weird stuff was going on with it. One think noted in the
+original comments is this janky [[float_to_list]] output.
+
+\begin{verbatim}
+> float_to_list(1.12345).
+"1.12345000000000005969e+00"
+\end{verbatim}
+
+No, thank you! There's other suggestions, but I found [[io_lib:format]]
+produced the nicest output.
+
+<<term function>>=
+term(Term) when is_float(Term) ->
+    lists:flatten(io_lib:format("~g", [Term]));
+@
+
+@ However, that means that the output is idiosyncratic. I copied the output of
+this function into the tests, so this is a bunch of hand-waving.
+
+<<term tests>>=
+dumb_float_test() ->
+    "0.123400" = term(0.1234),
+    "1.23400" = term(0.1234e1),
+    "1.23400e-2" = term(0.1234e-1),
+    "1.23400e+4" = term(1234.0e1),
+    "123.400" = term(1234.0e-1).
+@
+
+@ Everyone agrees about integers.
+
+<<term function>>=
+term(Term) when is_integer(Term) ->
+    integer_to_list(Term);
+@
+
+<<term tests>>=
+integer_test() ->
+    "0" = term(0),
+    "1" = term(1),
+    "1234" = term(1234).
+@
+
+
+@ \section{Atoms}
+
+I decided that atoms will be represented as strings.
+
+<<term tests>>=
+atom_test() ->
+    "\"foobar\"" = term(foobar),
+    "\"Strange Atoms!\"" = term('Strange Atoms!').
+@
+
+<<term function>>=
+term(Term) when is_atom(Term) ->
+    string:join(["\"", atom_to_list(Term), "\""], "");
+@
+
+@ \section{Objects}
+
+This is how [[maps]] should be converted to objects:
+
+<<object tests>>=
+object_test() ->
+    "{\"foo\": \"bar\", \"baz\": \"buzz\"}" = object(#{foo => bar, baz => buzz}).
+@
+
+@ This iterates over the keys. The accumulator contains strings like [["foo":
+"bar"]]. When it returns, they are wrapped in [[{]] and [[}]] and joined with
+[[,]].
+
+<<object function>>=
+object(Map) ->
+    object(Map, maps:keys(Map), []).
+
+object(_Map, [], Acc) ->
+    "{" ++ string:join(Acc, ", ") ++ "}";
+object(Map, [Key | Keys], Acc) ->
+    object(Map, Keys, [string:join([term(Key), term(maps:get(Key, Map))], ": ") | Acc]).
+@
+
+@ An object is a term!
+
+<<term function>>=
+term(Term) when is_map(Term) ->
+    object(Term);
+@
+
+
+@ \section{Arrays}
+
+Arrays are built in almost exactly the same as objects. An abstraction may be
+possible.
+
+<<array tests>>=
+array_test() ->
+    "[1, 2, 3]" = array([1, 2, 3]),
+    "[null, true, false]" = array([nil, true, false]).
+
+<<array function>>=
+array(Term) ->
+    array(Term, []).
+
+array([], Acc) ->
+    "[" ++ string:join(lists:reverse(Acc), ", ") ++ "]";
+array([Head | Tail], Acc) ->
+    array(Tail, [term(Head) | Acc]).
+@
+
+
+@ \section{Strings}
+
+Expected output:
+
+<<string tests>>=
+string_test() ->
+    "\"foobar\"" = string("foobar"),
+    "\"￦𝄞\"" = string("￦𝄞"),
+    "\"  \\\" \\\\ \\/ \\b \\f \\n \\r \\t  \"" = string("  \" \\ / \b \f \n \r \t  ").
+@
+
+@ Some characters in a string must be quoted, so we'll have to iterate through
+the whole thing. Here is the initialization and termination:
+
+<<string function>>=
+string(String) ->
+    string(String, [$"]).
+
+string([], Acc) ->
+    lists:reverse([$" | Acc]);
+@
+
+@ These are the characters that are required to be escaped. The JSON spec
+allows for any Unicode codepoint in a string. Since Erlang's default encoding
+is UTF-8 for strings now, and since I'm assuming that I'm being given string
+literals (and not bitstrings), no Unicode logic is required here.
+
+However, maybe I could add an option to escape codepoints.
+
+The escaped characters are backwards because the accumulator will be reversed.
+
+<<string function>>=
+string([$" | Rest], Acc) -> string(Rest, [$", $\\ | Acc]);
+string([$\\ | Rest], Acc) -> string(Rest, [$\\, $\\ | Acc]);
+string([$/ | Rest], Acc) -> string(Rest, [$/, $\\ | Acc]);
+string([$\b | Rest], Acc) -> string(Rest, [$b, $\\ | Acc]);
+string([$\f | Rest], Acc) -> string(Rest, [$f, $\\ | Acc]);
+string([$\n | Rest], Acc) -> string(Rest, [$n, $\\ | Acc]);
+string([$\r | Rest], Acc) -> string(Rest, [$r, $\\ | Acc]);
+string([$\t | Rest], Acc) -> string(Rest, [$t, $\\ | Acc]);
+@
+
+@ The fallback just adds the character.
+
+<<string function>>=
+string([Char | Rest], Acc) ->
+    string(Rest, [Char | Acc]).
+@
+
+
+@ \section{Finish}
+
+Now we only need to round out the term function. I'm not entirely happy how
+this document is structured. I wonder how I would have done this originally if
+I started with a literate program.
+
+Anyway, tuples are rendered as lists. When term is given a list, it could be a
+string or an actual list. We just need to check with
+[[io_lib:printable_unicode_list]].
+
+<<term function>>=
+term(Term) when is_tuple(Term) ->
+    term(tuple_to_list(Term));
+
+term(Term) when is_list(Term) ->
+    case io_lib:printable_unicode_list(Term) of
+        true -> string(Term);
+        false -> array(Term)
+    end.
+@
+
+@ Here are some tests to put it all together.
+
+<<term tests>>=
+all_together_test() ->
+    "true" = term(true),
+    "false" = term(false),
+    "null" = term(null),
+    "null" = term(nil),
+    "\"foobar\"" = term(foobar),
+    "\"￦𝄞\"" = term("￦𝄞"),
+    "\"  \\\" \\\\ \\/ \\b \\f \\n \\r \\t  \"" = term("  \" \\ / \b \f \n \r \t  "),
+    "{\"foo\": \"bar\", \"baz\": \"buzz\"}" = term(#{foo => bar, baz => buzz}),
+    "{\"foo\": \"bar\", \"baz\": [\"b\", \"u\", \"zz\"]}" = term(#{foo => bar, baz => [b, u, zz]}),
+    "[true, false, null, null]" = term([true, false, null, nil]),
+    "[0.123400, 1.23400, 1.23400e-2, 0, -1, 1, 1.23400e+4, 123.400]" = term([0.1234, 0.1234e1, 0.1234e-1, 0, -1, 1, 1234.0e1, 1234.0e-1]).

@@ -1,0 +1,91 @@
+@ \title{json.erl}
+\author{Mason Staugler}
+
+This is the public interface to the libray.
+
+<<*>>=
+-module(json).
+-export([
+    <<exports>>
+]).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
+<<functions>>
+
+-ifdef(TEST).
+<<tests>>
+-endif.
+@
+
+
+@ The [[to_term]] function converts a JSON string into an Erlang term with
+options. The only option is [[atom_keys]] which means that map keys are
+converted to atoms.
+
+We strip whitespace from the rest of the input to ensure that the document is
+well formed.
+
+<<functions>>=
+to_term(String) ->
+    to_term(String, []).
+
+to_term(String, Options) ->
+    {Term, Rest} = json_parser:value(String, Options),
+    "" = re:replace(Rest, "[\\s]", "", [global, {return, list}]),
+    Term.
+<<exports>>=
+to_term/1
+,to_term/2
+@
+
+
+@ The [[from_term]] function generates a JSON string from an Erlang term.
+
+<<functions>>=
+from_term(Term) ->
+    json_emitter:term(Term).
+@
+
+
+@ We want to test that the input matches the output.
+
+<<tests>>=
+equality_test() ->
+    Input = #{name => "Mason Staugler",
+              age => 35,
+              employed => true,
+              favorite_foods => [
+                  "pizza",
+                  "chicken vindaloo",
+                  "seltzer"],
+              pet => #{name => "Sasha",
+                       type => "dog",
+                       personality => "pig"}},
+
+    Json_document = from_term(Input),
+
+    % Keys to atoms.
+    Input = to_term(Json_document, [atom_keys]),
+
+    Expected_output = #{"name" => "Mason Staugler",
+                        "age" => 35,
+                        "employed" => true,
+                        "favorite_foods" => [
+                             "pizza",
+                             "chicken vindaloo",
+                             "seltzer"],
+                        "pet" => #{"name" => "Sasha",
+                                   "type" => "dog",
+                                   "personality" => "pig"}},
+    Converted_term = to_term(Json_document),
+    Expected_output = Converted_term.
+@
+
+@ Trailing whitespace should be ignored.
+
+<<tests>>=
+trailing_whitespace_test() ->
+    ["foobar"] = to_term("[\"foobar\"]\n").
