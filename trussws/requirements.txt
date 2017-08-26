@@ -1,0 +1,5 @@
+# These are development requirements. At runtime there are no requirements.
+ipdb
+ipython
+mock
+watchdog
