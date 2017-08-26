@@ -1,0 +1,25 @@
+[
+    {:db/id #db/id[:db.part/user]
+     :name "Sun"
+     :name/stellar "Sun"
+     :loc/distance 0.0
+     :loc/latitude 0.0
+     :loc/longitude 0.0}
+
+    {:db/id #db/id[:db.part/user]
+     :name "Sun"
+     :link "http://en.wikipedia.org/wiki/Sun"}
+
+    {:db/id #db/id[:db.part/user]
+     :name "Earth"
+     :name/stellar "Sun"
+     ; Earth is planet A because it was the first planet discovered.
+     :name/letter "a"
+     :loc/orbit 1.0
+     :mass/earth 1.0
+     :radius/earth 1.0}
+
+    {:db/id #db/id[:db.part/user]
+     :name "Earth"
+     :link "http://en.wikipedia.org/wiki/Earth"}
+]
