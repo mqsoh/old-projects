@@ -1,0 +1,19 @@
+{
+  "name": "quash",
+  "version": "1.0.0",
+  "description": "My boss gets mad at me when I make errors.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mqsoh/quash.git"
+  },
+  "author": "Mason Staugler",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mqsoh/quash/issues"
+  },
+  "homepage": "https://github.com/mqsoh/quash#readme"
+}
